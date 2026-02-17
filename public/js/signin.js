@@ -4,10 +4,45 @@ const authSubmit = document.getElementById('auth-submit');
 const authError = document.getElementById('auth-error');
 const authInfo = document.getElementById('auth-info');
 const switchModeBtn = document.getElementById('switch-mode');
+const switchLabel = document.getElementById('switch-label');
 const fullNameInput = document.getElementById('full-name');
 const fullNameLabel = document.getElementById('full-name-label');
+const signupModal = document.getElementById('signup-modal');
+const signupModalClose = document.getElementById('signup-modal-close');
 
 let mode = 'signin';
+let submitCooldownUntil = 0;
+
+function setSubmitState({ busy = false } = {}) {
+  authSubmit.disabled = busy;
+  authSubmit.style.opacity = busy ? '0.75' : '1';
+  authSubmit.style.cursor = busy ? 'not-allowed' : 'pointer';
+}
+
+function startCooldown(seconds = 30) {
+  submitCooldownUntil = Date.now() + seconds * 1000;
+}
+
+function getAuthErrorMessage(error) {
+  const raw = `${error?.message || ''}`.toLowerCase();
+  const status = Number(error?.status || 0);
+
+  if (status === 429 || raw.includes('rate limit')) {
+    return 'Email sending is temporarily rate-limited. Please wait about 30-60 seconds before trying again. If this continues, enable custom SMTP in Supabase for higher email limits.';
+  }
+
+  return error?.message || 'Something went wrong. Please try again.';
+}
+
+function openSignupModal() {
+  signupModal.classList.remove('hidden');
+  signupModal.setAttribute('aria-hidden', 'false');
+}
+
+function closeSignupModal() {
+  signupModal.classList.add('hidden');
+  signupModal.setAttribute('aria-hidden', 'true');
+}
 
 async function syncUserRecord(user, fallbackName = '') {
   if (!user?.id || !user?.email) return;
@@ -31,12 +66,14 @@ function setMode(nextMode) {
   if (mode === 'signin') {
     authTitle.textContent = 'Sign in';
     authSubmit.textContent = 'Sign in';
+    switchLabel.textContent = 'Need an account?';
     switchModeBtn.textContent = 'Sign up';
     fullNameInput.classList.add('hidden');
     fullNameLabel.classList.add('hidden');
   } else {
     authTitle.textContent = 'Sign up';
     authSubmit.textContent = 'Create account';
+    switchLabel.textContent = 'Already have an account?';
     switchModeBtn.textContent = 'Sign in';
     fullNameInput.classList.remove('hidden');
     fullNameLabel.classList.remove('hidden');
@@ -47,11 +84,19 @@ const params = new URLSearchParams(window.location.search);
 setMode(params.get('mode') === 'signup' ? 'signup' : 'signin');
 
 switchModeBtn.addEventListener('click', () => setMode(mode === 'signin' ? 'signup' : 'signin'));
+signupModalClose.addEventListener('click', closeSignupModal);
+signupModal.addEventListener('click', (event) => {
+  if (event.target === signupModal) closeSignupModal();
+});
 
 authForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   authError.textContent = '';
   authInfo.textContent = '';
+  if (Date.now() < submitCooldownUntil) {
+    authError.textContent = 'Please wait a bit before sending another request.';
+    return;
+  }
 
   await window.prelabAuth.init();
   if (window.prelabAuth?.missingConfig) {
@@ -64,10 +109,12 @@ authForm.addEventListener('submit', async (event) => {
   const fullName = fullNameInput.value.trim();
 
   try {
+    setSubmitState({ busy: true });
     if (mode === 'signup') {
       const signup = await window.prelabAuth.signUp(email, password, fullName);
       await syncUserRecord(signup.user, fullName);
-      authInfo.textContent = 'Account created. Check email confirmation, then sign in.';
+      authInfo.textContent = 'Account created. Please confirm your email before signing in.';
+      openSignupModal();
       setMode('signin');
       return;
     }
@@ -81,7 +128,12 @@ authForm.addEventListener('submit', async (event) => {
     );
     window.location.href = '/pages/dashboard.html';
   } catch (error) {
-    authError.textContent = error.message;
+    authError.textContent = getAuthErrorMessage(error);
+    if (Number(error?.status || 0) === 429 || `${error?.message || ''}`.toLowerCase().includes('rate limit')) {
+      startCooldown(45);
+    }
+  } finally {
+    setSubmitState({ busy: false });
   }
 });
 

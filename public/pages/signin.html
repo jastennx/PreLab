@@ -35,9 +35,19 @@
 
       <p id="auth-error" class="error"></p>
       <p id="auth-info" class="info"></p>
-      <p class="switch-text">Need an account? <button id="switch-mode" class="inline-btn" type="button">Sign up</button></p>
+      <p class="switch-text"><span id="switch-label">Need an account?</span> <button id="switch-mode" class="inline-btn" type="button">Sign up</button></p>
     </section>
   </main>
+
+  <div id="signup-modal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="signup-modal-title">
+      <h3 id="signup-modal-title">Confirm your email</h3>
+      <p>
+        Your account was created. Please check your email and click the confirmation link before signing in.
+      </p>
+      <button id="signup-modal-close" type="button" class="btn dark">Got it</button>
+    </div>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../js/config.js"></script>

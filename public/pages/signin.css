@@ -131,3 +131,48 @@ input {
   cursor: pointer;
 }
 
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 7, 16, 0.65);
+  display: grid;
+  place-items: center;
+  z-index: 999;
+  padding: 1rem;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-card {
+  width: min(420px, 95vw);
+  background: #e9e9e9;
+  color: #121212;
+  border-radius: 12px;
+  padding: 1rem 1rem 1.1rem;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.4);
+  animation: modalIn 220ms ease-out;
+}
+
+.modal-card h3 {
+  margin-bottom: 0.45rem;
+}
+
+.modal-card p {
+  color: #4b4b4b;
+  line-height: 1.45;
+  margin-bottom: 0.9rem;
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+

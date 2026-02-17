@@ -1,4 +1,4 @@
-﻿const authTitle = document.getElementById('auth-title');
+const authTitle = document.getElementById('auth-title');
 const authForm = document.getElementById('auth-form');
 const authSubmit = document.getElementById('auth-submit');
 const authError = document.getElementById('auth-error');
@@ -79,8 +79,9 @@ authForm.addEventListener('submit', async (event) => {
       'prelab_user',
       JSON.stringify({ id: user.id, email: user.email, full_name: user.user_metadata?.full_name || '' })
     );
-    window.location.href = './dashboard.html';
+    window.location.href = '/pages/dashboard.html';
   } catch (error) {
     authError.textContent = error.message;
   }
 });
+

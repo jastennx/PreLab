@@ -12,7 +12,7 @@ async function bootstrap() {
 
   if (!module.id || !quizWrapper.quizId || !quizWrapper.quiz?.questions?.length) {
     alert('No quiz found. Generate one from Study page.');
-    window.location.href = './study.html';
+    window.location.href = '/pages/study.html';
     return;
   }
 
@@ -131,7 +131,7 @@ document.getElementById('next-btn').addEventListener('click', async () => {
 
     window.localStorage.setItem('prelab_result', JSON.stringify(data.result));
     setSubmitLoading(false, '');
-    window.location.href = './feedback.html';
+    window.location.href = '/pages/feedback.html';
   } catch (error) {
     setSubmitLoading(false, '');
     alert(error.message);
@@ -140,7 +140,8 @@ document.getElementById('next-btn').addEventListener('click', async () => {
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
   await window.prelabAuth.signOut();
-  window.location.href = './home.html';
+  window.location.href = '/pages/home.html';
 });
 
 bootstrap();
+

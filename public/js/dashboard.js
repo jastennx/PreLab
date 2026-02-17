@@ -1,4 +1,4 @@
-﻿const user = JSON.parse(window.localStorage.getItem('prelab_user') || '{}');
+const user = JSON.parse(window.localStorage.getItem('prelab_user') || '{}');
 
 async function bootstrap() {
   const authUser = await window.requireAuthUser();
@@ -87,13 +87,13 @@ async function loadModules(userId) {
           const resultId = btn.dataset.resultId;
           const resultPayload = await window.api.get(`/results/${resultId}`);
           window.localStorage.setItem('prelab_result', JSON.stringify(resultPayload.result));
-          window.location.href = './feedback.html';
+          window.location.href = '/pages/feedback.html';
           return;
         }
 
         const details = await window.api.get(`/modules/${moduleId}`);
         window.localStorage.setItem('prelab_module', JSON.stringify(details.module));
-        window.location.href = './study.html';
+        window.location.href = '/pages/study.html';
       });
     });
   } catch (error) {
@@ -220,7 +220,8 @@ document.getElementById('material-file').addEventListener('change', (event) => {
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
   await window.prelabAuth.signOut();
-  window.location.href = './home.html';
+  window.location.href = '/pages/home.html';
 });
 
 bootstrap();
+

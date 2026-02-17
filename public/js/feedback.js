@@ -1,11 +1,11 @@
-﻿async function bootstrap() {
+async function bootstrap() {
   const authUser = await window.requireAuthUser();
   if (!authUser) return;
 
   const result = JSON.parse(window.localStorage.getItem('prelab_result') || '{}');
   if (!result.id) {
     alert('No result found.');
-    window.location.href = './dashboard.html';
+    window.location.href = '/pages/dashboard.html';
     return;
   }
 
@@ -58,7 +58,8 @@ function renderResult(result) {
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
   await window.prelabAuth.signOut();
-  window.location.href = './home.html';
+  window.location.href = '/pages/home.html';
 });
 
 bootstrap();
+

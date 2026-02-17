@@ -6,11 +6,11 @@ const closeDemoBtn = document.getElementById('close-demo');
 const demoVideo = document.getElementById('demo-video');
 
 loginBtn.addEventListener('click', () => {
-  window.location.href = './signin.html?mode=signin';
+  window.location.href = '/pages/signin.html?mode=signin';
 });
 
 signupBtn.addEventListener('click', () => {
-  window.location.href = './signin.html?mode=signup';
+  window.location.href = '/pages/signin.html?mode=signup';
 });
 
 watchDemoBtn.addEventListener('click', async () => {
@@ -32,3 +32,4 @@ demoModal.addEventListener('click', (event) => {
   demoVideo.pause();
   demoModal.classList.add('hidden');
 });
+

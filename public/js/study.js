@@ -1,11 +1,11 @@
-﻿async function bootstrap() {
+async function bootstrap() {
   const authUser = await window.requireAuthUser();
   if (!authUser) return;
 
   const module = JSON.parse(window.localStorage.getItem('prelab_module') || '{}');
   if (!module.id) {
     alert('Select a module first from dashboard.');
-    window.location.href = './dashboard.html';
+    window.location.href = '/pages/dashboard.html';
     return;
   }
 
@@ -213,7 +213,7 @@ document.getElementById('start-practice').addEventListener('click', async () => 
     }
     window.localStorage.setItem('prelab_quiz', JSON.stringify(data));
     setQuizLoading(false, '');
-    window.location.href = './practice.html';
+    window.location.href = '/pages/practice.html';
   } catch (error) {
     setQuizLoading(false, '');
     const message = String(error.message || '');
@@ -275,7 +275,8 @@ document.getElementById('chat-form').addEventListener('submit', async (event) =>
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
   await window.prelabAuth.signOut();
-  window.location.href = './home.html';
+  window.location.href = '/pages/home.html';
 });
 
 bootstrap();
+

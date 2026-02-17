@@ -1,4 +1,4 @@
-﻿window.prelabAuth = {
+window.prelabAuth = {
   missingConfig: true,
   client: null,
   async init() {
@@ -60,14 +60,14 @@ window.requireAuthUser = async function requireAuthUser() {
 
   if (window.prelabAuth.missingConfig) {
     alert('Supabase environment variables are missing on the server.');
-    window.location.href = './home.html';
+    window.location.href = '/pages/home.html';
     return null;
   }
 
   try {
     const user = await window.prelabAuth.getUser();
     if (!user) {
-      window.location.href = './home.html';
+      window.location.href = '/pages/home.html';
       return null;
     }
 
@@ -77,7 +77,8 @@ window.requireAuthUser = async function requireAuthUser() {
     );
     return user;
   } catch (_error) {
-    window.location.href = './home.html';
+    window.location.href = '/pages/home.html';
     return null;
   }
 };
+

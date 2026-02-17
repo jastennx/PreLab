@@ -57,8 +57,7 @@ function renderResult(result) {
 }
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
-  await window.prelabAuth.signOut();
-  window.location.href = '/pages/home.html';
+  await window.confirmAndSignOut();
 });
 
 bootstrap();

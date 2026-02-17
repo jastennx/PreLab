@@ -5,6 +5,11 @@ const authError = document.getElementById('auth-error');
 const authInfo = document.getElementById('auth-info');
 const switchModeBtn = document.getElementById('switch-mode');
 const switchLabel = document.getElementById('switch-label');
+const passwordInput = document.getElementById('password');
+const confirmPasswordInput = document.getElementById('confirm-password');
+const confirmPasswordLabel = document.getElementById('confirm-password-label');
+const showPasswordWrap = document.getElementById('show-password-wrap');
+const showPasswordToggle = document.getElementById('show-password');
 const fullNameInput = document.getElementById('full-name');
 const fullNameLabel = document.getElementById('full-name-label');
 const signupModal = document.getElementById('signup-modal');
@@ -44,6 +49,12 @@ function closeSignupModal() {
   signupModal.setAttribute('aria-hidden', 'true');
 }
 
+function setPasswordVisibility(show) {
+  const type = show ? 'text' : 'password';
+  passwordInput.type = type;
+  confirmPasswordInput.type = type;
+}
+
 async function syncUserRecord(user, fallbackName = '') {
   if (!user?.id || !user?.email) return;
 
@@ -68,6 +79,12 @@ function setMode(nextMode) {
     authSubmit.textContent = 'Sign in';
     switchLabel.textContent = 'Need an account?';
     switchModeBtn.textContent = 'Sign up';
+    confirmPasswordInput.classList.add('hidden');
+    confirmPasswordLabel.classList.add('hidden');
+    showPasswordWrap.classList.add('hidden');
+    confirmPasswordInput.required = false;
+    showPasswordToggle.checked = false;
+    setPasswordVisibility(false);
     fullNameInput.classList.add('hidden');
     fullNameLabel.classList.add('hidden');
   } else {
@@ -75,6 +92,10 @@ function setMode(nextMode) {
     authSubmit.textContent = 'Create account';
     switchLabel.textContent = 'Already have an account?';
     switchModeBtn.textContent = 'Sign in';
+    confirmPasswordInput.classList.remove('hidden');
+    confirmPasswordLabel.classList.remove('hidden');
+    showPasswordWrap.classList.remove('hidden');
+    confirmPasswordInput.required = true;
     fullNameInput.classList.remove('hidden');
     fullNameLabel.classList.remove('hidden');
   }
@@ -87,6 +108,9 @@ switchModeBtn.addEventListener('click', () => setMode(mode === 'signin' ? 'signu
 signupModalClose.addEventListener('click', closeSignupModal);
 signupModal.addEventListener('click', (event) => {
   if (event.target === signupModal) closeSignupModal();
+});
+showPasswordToggle.addEventListener('change', () => {
+  setPasswordVisibility(showPasswordToggle.checked);
 });
 
 authForm.addEventListener('submit', async (event) => {
@@ -105,12 +129,17 @@ authForm.addEventListener('submit', async (event) => {
   }
 
   const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('password').value.trim();
+  const password = passwordInput.value.trim();
+  const confirmPassword = confirmPasswordInput.value.trim();
   const fullName = fullNameInput.value.trim();
 
   try {
     setSubmitState({ busy: true });
     if (mode === 'signup') {
+      if (password !== confirmPassword) {
+        throw new Error('Password and confirm password do not match.');
+      }
+
       const signup = await window.prelabAuth.signUp(email, password, fullName);
       await syncUserRecord(signup.user, fullName);
       authInfo.textContent = 'Account created. Please confirm your email before signing in.';

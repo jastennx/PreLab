@@ -88,6 +88,22 @@ input {
   padding: 0.65rem 0.75rem;
 }
 
+.show-password {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #3d3d3d;
+  margin-top: 0.7rem;
+}
+
+.show-password input {
+  width: auto;
+  margin: 0;
+  padding: 0;
+}
+
 .hidden {
   display: none;
 }

@@ -82,3 +82,12 @@ window.requireAuthUser = async function requireAuthUser() {
   }
 };
 
+window.confirmAndSignOut = async function confirmAndSignOut() {
+  const shouldLogout = window.confirm('Are you sure you want to log out?');
+  if (!shouldLogout) return false;
+
+  await window.prelabAuth.signOut();
+  window.location.href = '/pages/home.html';
+  return true;
+};
+

@@ -14,13 +14,18 @@ async function bootstrap() {
   await loadChat(authUser.id, module.id);
 }
 
+function normalizeText(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
 function renderExplanation(data) {
   const normalized = normalizeExplanationPayload(data);
   const summary = document.getElementById('summary');
   const hint = document.getElementById('explanation-hint');
   const card = document.getElementById('explanation-card');
   summary.textContent = normalized.summary || 'No summary generated yet.';
-  hint.textContent = '';
+  hint.textContent = normalized.summary ? '' : 'No explanation generated yet.';
+  card.classList.remove('compact', 'loading');
   card.classList.add('ready');
 
   const points = document.getElementById('key-points');
@@ -51,9 +56,9 @@ function normalizeExplanationPayload(data) {
       try {
         const parsed = JSON.parse(raw);
         return {
-          summary: parsed.summary || '',
-          key_points: Array.isArray(parsed.key_points) ? parsed.key_points : [],
-          study_tips: Array.isArray(parsed.study_tips) ? parsed.study_tips : []
+          summary: normalizeText(parsed.summary || ''),
+          key_points: Array.isArray(parsed.key_points) ? parsed.key_points.map(normalizeText).filter(Boolean) : [],
+          study_tips: Array.isArray(parsed.study_tips) ? parsed.study_tips.map(normalizeText).filter(Boolean) : []
         };
       } catch (_error) {
         return extractExplanationFromBrokenJson(raw);
@@ -62,9 +67,9 @@ function normalizeExplanationPayload(data) {
   }
 
   return {
-    summary: data.summary || '',
-    key_points: Array.isArray(data.key_points) ? data.key_points : [],
-    study_tips: Array.isArray(data.study_tips) ? data.study_tips : []
+    summary: normalizeText(data.summary || ''),
+    key_points: Array.isArray(data.key_points) ? data.key_points.map(normalizeText).filter(Boolean) : [],
+    study_tips: Array.isArray(data.study_tips) ? data.study_tips.map(normalizeText).filter(Boolean) : []
   };
 }
 
@@ -87,9 +92,9 @@ function extractExplanationFromBrokenJson(raw) {
   };
 
   return {
-    summary,
-    key_points: parseArrayItems(keyPointsBlock),
-    study_tips: parseArrayItems(studyTipsBlock)
+    summary: normalizeText(summary),
+    key_points: parseArrayItems(keyPointsBlock).map(normalizeText).filter(Boolean),
+    study_tips: parseArrayItems(studyTipsBlock).map(normalizeText).filter(Boolean)
   };
 }
 
@@ -116,38 +121,55 @@ function addMessage(role, content) {
   box.scrollTop = box.scrollHeight;
 }
 
+function setStatusText(id, text = '') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const value = String(text || '').trim();
+  el.textContent = value;
+  el.classList.toggle('visible', Boolean(value));
+}
+
 function setExplanationLoading(isLoading, text = '') {
   const button = document.getElementById('generate-explanation');
-  const status = document.getElementById('explanation-status');
-  if (!button || !status) return;
+  const hint = document.getElementById('explanation-hint');
+  const summary = document.getElementById('summary');
+  const points = document.getElementById('key-points');
+  const tips = document.getElementById('study-tips');
+  const card = document.getElementById('explanation-card');
+  if (!button) return;
 
   if (isLoading) {
     button.disabled = true;
     button.textContent = 'Generating...';
-    status.textContent = text || 'Explanation is generating. Please wait...';
+    setStatusText('explanation-status', text || 'Explanation is generating. Please wait...');
+    if (hint) hint.textContent = 'Explanation is generating. Please wait...';
+    if (summary) summary.textContent = '';
+    if (points) points.innerHTML = '';
+    if (tips) tips.innerHTML = '';
+    if (card) card.classList.add('compact', 'loading');
     return;
   }
 
   button.disabled = false;
   button.textContent = 'Generate Explanation';
-  status.textContent = text || '';
+  setStatusText('explanation-status', text || '');
+  if (card) card.classList.remove('loading');
 }
 
 function setQuizLoading(isLoading, text = '') {
   const button = document.getElementById('start-practice');
-  const status = document.getElementById('quiz-status');
-  if (!button || !status) return;
+  if (!button) return;
 
   if (isLoading) {
     button.disabled = true;
     button.textContent = 'Creating Quiz...';
-    status.textContent = text || 'Module is still creating your quiz. Please wait...';
+    setStatusText('quiz-status', text || 'Module is still creating your quiz. Please wait...');
     return;
   }
 
   button.disabled = false;
   button.textContent = 'Generate Practice Quiz';
-  status.textContent = text || '';
+  setStatusText('quiz-status', text || '');
 }
 
 function setChatLoading(isLoading, text = '') {
@@ -274,8 +296,7 @@ document.getElementById('chat-form').addEventListener('submit', async (event) =>
 });
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
-  await window.prelabAuth.signOut();
-  window.location.href = '/pages/home.html';
+  await window.confirmAndSignOut();
 });
 
 bootstrap();

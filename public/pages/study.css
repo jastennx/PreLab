@@ -62,6 +62,7 @@ body {
   display: grid;
   gap: 1rem;
   grid-template-columns: 1.3fr 0.8fr;
+  align-items: start;
 }
 
 .study-panel,
@@ -140,10 +141,14 @@ body {
 }
 
 .quiz-status {
-  min-height: 1.3rem;
-  margin: 0.1rem 0 0.8rem;
+  display: none;
+  margin: 0.1rem 0 0.4rem;
   color: #4f2a79;
   font-weight: 700;
+}
+
+.quiz-status.visible {
+  display: block;
 }
 
 .chat-status {
@@ -199,6 +204,21 @@ li {
   color: #6a6180;
   margin-bottom: 0.7rem;
   font-weight: 600;
+}
+
+#summary {
+  white-space: normal;
+  line-height: 1.55;
+}
+
+#explanation-card.compact h3,
+#explanation-card.compact ul,
+#explanation-card.compact #summary {
+  display: none;
+}
+
+#explanation-card.loading {
+  border-color: #a779dc;
 }
 
 .controls button,

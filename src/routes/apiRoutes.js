@@ -1,6 +1,5 @@
 const express = require('express');
 const multer = require('multer');
-const pdfParse = require('pdf-parse');
 const mammoth = require('mammoth');
 const config = require('../config');
 const { supabaseAdmin } = require('../services/supabaseClient');
@@ -59,6 +58,7 @@ async function extractMaterialTextFromBuffer({ name, mime, buffer }) {
   const fileMime = (mime || '').toLowerCase();
 
   if (fileMime.includes('pdf') || fileName.endsWith('.pdf')) {
+    const pdfParse = require('pdf-parse');
     const parsed = await pdfParse(buffer);
     return (parsed.text || '').trim();
   }

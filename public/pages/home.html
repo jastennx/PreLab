@@ -1,0 +1,62 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PreLab | Home</title>
+  <link rel="icon" type="image/png" href="../assets/prelab-logo.png" />
+  <link rel="stylesheet" href="./home.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img class="brand-logo" src="../assets/prelab-logo.png" alt="PreLab logo" />
+    </div>
+  </header>
+
+  <main class="home-wrap">
+    <section class="hero-card">
+      <p class="badge">AI powered Learning Platform</p>
+      <h1>Learn, Practice and <span>Succeed</span></h1>
+      <p class="subtitle">
+        Master any subject with personalized practice activities, interactive quizzes,
+        and AI-powered feedback.
+      </p>
+      <div class="hero-actions">
+        <button id="show-login" class="btn primary">Sign in</button>
+        <button id="show-signup" class="btn ghost">Sign up</button>
+      </div>
+      <div class="demo-action-row">
+        <button id="watch-demo" class="btn ghost">Watch Demo</button>
+      </div>
+
+      <div class="feature-grid">
+        <article class="feature">
+          <h3>AI-Powered Study</h3>
+          <p>Smart chatbot guides you through topics and creates personalized study materials.</p>
+        </article>
+        <article class="feature">
+          <h3>Practice Activities</h3>
+          <p>Generate quizzes and mock exams tailored to your selected topics and modules.</p>
+        </article>
+        <article class="feature">
+          <h3>Instant Feedback</h3>
+          <p>Get score analysis, weak-area detection, and clear next-step study suggestions.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <div id="demo-modal" class="demo-modal hidden" role="dialog" aria-modal="true" aria-label="PreLab demo video">
+    <div class="demo-dialog">
+      <button id="close-demo" class="close-demo" type="button" aria-label="Close demo">&times;</button>
+      <video id="demo-video" controls preload="metadata">
+        <source src="../demo/prelab-demo.mp4" type="video/mp4" />
+      </video>
+      <p class="demo-note">Place your recording at <code>public/demo/prelab-demo.mp4</code></p>
+    </div>
+  </div>
+
+  <script src="../js/home.js"></script>
+</body>
+</html>

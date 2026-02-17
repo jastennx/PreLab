@@ -1,0 +1,59 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PreLab | Feedback</title>
+  <link rel="icon" type="image/png" href="../assets/prelab-logo.png" />
+  <link rel="stylesheet" href="./feedback.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img class="brand-logo" src="../assets/prelab-logo.png" alt="PreLab logo" />
+    </div>
+    <div class="actions">
+      <a href="./dashboard.html">Dashboard</a>
+      <button id="logout-btn">Logout</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="summary-card">
+      <h1 id="result-title">Keep Learning!</h1>
+      <p id="encouragement"></p>
+      <div class="score-grid">
+        <div>
+          <p class="label">Your Score</p>
+          <p id="score" class="value">0%</p>
+        </div>
+        <div>
+          <p class="label">Correct Answers</p>
+          <p id="correct" class="value">0/0</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="review-card">
+      <h2>Answer Review</h2>
+      <div id="review-list"></div>
+    </section>
+
+    <div class="action-row">
+      <a href="./dashboard.html" class="btn light">Back to Dashboard</a>
+      <a href="./study.html" class="btn dark">Try Again</a>
+    </div>
+
+    <section class="tips-card">
+      <h3>Tips for Improvement</h3>
+      <ul id="tips-list"></ul>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/feedback.js"></script>
+</body>
+</html>

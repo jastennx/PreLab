@@ -1,0 +1,227 @@
+:root {
+  --bg-1: #120124;
+  --bg-2: #6b30a2;
+  --bg-3: #18022d;
+  --panel: #ececec;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  color: #f8f4ff;
+  background: radial-gradient(circle at 45% 55%, var(--bg-2), var(--bg-1) 65%, var(--bg-3));
+  animation: pageIn 260ms ease-out;
+}
+
+.topbar {
+  height: 72px;
+  background: linear-gradient(90deg, #140129, #58298d);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 8vw;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+}
+
+.brand-logo {
+  height: 58px;
+  width: auto;
+  display: block;
+}
+
+.actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.actions a,
+.actions button {
+  color: white;
+  text-decoration: none;
+  border: none;
+  background: #1b1b20;
+  border-radius: 8px;
+  padding: 0.55rem 0.8rem;
+  cursor: pointer;
+}
+
+.container {
+  width: min(980px, 92vw);
+  margin: 2.1rem auto;
+  display: grid;
+  gap: 1rem;
+}
+
+.status-card,
+.question-card,
+.pager-card {
+  background: var(--panel);
+  color: #111;
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  animation: fadeUp 280ms ease-out;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.status-card:hover,
+.question-card:hover,
+.pager-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 11px 24px rgba(0, 0, 0, 0.28);
+}
+
+.progress {
+  width: 100%;
+  height: 10px;
+  margin-top: 0.5rem;
+  border-radius: 999px;
+  background: #d6d6d6;
+  overflow: hidden;
+}
+
+#progress-fill {
+  display: block;
+  width: 0%;
+  height: 100%;
+  background: #6f33a8;
+  transition: width 220ms ease;
+}
+
+.question-card h2 {
+  font-size: 1.7rem;
+}
+
+.option-list {
+  margin-top: 0.9rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.option {
+  width: 100%;
+  text-align: left;
+  border: 1px solid #777;
+  border-radius: 8px;
+  background: #f8f8f8;
+  padding: 0.8rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+
+.option:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+}
+
+.option.selected {
+  border-color: #6f33a8;
+  background: #e8d8fa;
+}
+
+.option-prefix {
+  display: inline-block;
+  width: 1.4rem;
+  font-weight: 800;
+}
+
+#next-btn {
+  margin-top: 0.8rem;
+  border: none;
+  border-radius: 8px;
+  background: #6f33a8;
+  color: white;
+  width: 240px;
+  max-width: 100%;
+  padding: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 140ms ease, filter 140ms ease, box-shadow 180ms ease;
+}
+
+#next-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.2);
+}
+
+#next-btn:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.submit-status {
+  min-height: 1.2rem;
+  margin-top: 0.5rem;
+  color: #5f3f85;
+  font-weight: 700;
+}
+
+.pager {
+  margin-top: 0.6rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.pager button {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: 8px;
+  background: #cfcfcf;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+.pager button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+}
+
+.pager button.active {
+  background: #6f33a8;
+  color: white;
+}
+
+.pager button.done {
+  background: #8f76ad;
+  color: white;
+}
+
+@keyframes pageIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

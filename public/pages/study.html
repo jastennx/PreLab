@@ -1,0 +1,69 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PreLab | Study</title>
+  <link rel="icon" type="image/png" href="../assets/prelab-logo.png" />
+  <link rel="stylesheet" href="./study.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img class="brand-logo" src="../assets/prelab-logo.png" alt="PreLab logo" />
+    </div>
+    <div class="actions">
+      <a href="./dashboard.html">Dashboard</a>
+      <button id="logout-btn">Logout</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="study-panel">
+      <h1 id="module-title">Module</h1>
+      <p id="subject-name"></p>
+
+      <div class="controls">
+        <input id="topic-input" type="text" placeholder="Optional focus topic (e.g. API security)" />
+        <button id="generate-explanation">Generate Explanation</button>
+        <select id="question-count" aria-label="Question count">
+          <option value="10">10 Questions</option>
+          <option value="20">20 Questions</option>
+          <option value="30">30 Questions</option>
+          <option value="40">40 Questions</option>
+          <option value="50">50 Questions</option>
+        </select>
+        <button id="start-practice">Generate Practice Quiz</button>
+      </div>
+      <p id="explanation-status" class="quiz-status" aria-live="polite"></p>
+      <p id="quiz-status" class="quiz-status" aria-live="polite"></p>
+
+      <article class="card" id="explanation-card">
+        <h2>AI Study Explanation</h2>
+        <p id="explanation-hint" class="explanation-hint">Generate explanation first to view Summary, Key Points, and Study Tips.</p>
+        <p id="summary"></p>
+        <h3>Key Points</h3>
+        <ul id="key-points"></ul>
+        <h3>Study Tips</h3>
+        <ul id="study-tips"></ul>
+      </article>
+    </section>
+
+    <aside class="chat-panel">
+      <h2>PreLab Assistant</h2>
+      <div id="chat-messages" class="chat-messages"></div>
+      <p id="chat-status" class="chat-status" aria-live="polite"></p>
+      <form id="chat-form">
+        <input id="chat-input" type="text" placeholder="Ask about this module..." required />
+        <button type="submit">Send</button>
+      </form>
+    </aside>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/study.js"></script>
+</body>
+</html>

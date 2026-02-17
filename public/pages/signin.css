@@ -1,0 +1,133 @@
+:root {
+  --bg-1: #120124;
+  --bg-2: #6b30a2;
+  --bg-3: #18022d;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  color: #f2eef9;
+  background: radial-gradient(circle at 50% 55%, var(--bg-2), var(--bg-1) 65%, var(--bg-3));
+}
+
+.topbar {
+  height: 72px;
+  background: linear-gradient(90deg, #140129, #58298d);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  padding: 0 8vw;
+}
+
+.brand {
+  color: #f2eef9;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+.brand-logo {
+  height: 58px;
+  width: auto;
+  display: block;
+}
+
+.auth-page {
+  min-height: calc(100vh - 72px);
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+}
+
+.auth-card {
+  width: min(440px, 95vw);
+  border-radius: 10px;
+  background: #e9e9e9;
+  color: #121212;
+  padding: 1.2rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.back-link {
+  color: #1a1a1a;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.auth-card h2 {
+  margin-top: 0.5rem;
+}
+
+.auth-subtitle {
+  color: #666;
+  margin-top: 0.35rem;
+}
+
+form {
+  margin-top: 1rem;
+}
+
+label {
+  font-size: 0.86rem;
+  font-weight: 600;
+  display: block;
+  margin: 0.9rem 0 0.3rem;
+}
+
+input {
+  width: 100%;
+  border: 1px solid #a8a8a8;
+  border-radius: 6px;
+  padding: 0.65rem 0.75rem;
+}
+
+.hidden {
+  display: none;
+}
+
+.btn.dark {
+  margin-top: 1rem;
+  background: #08080b;
+  color: white;
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.2rem;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.error {
+  min-height: 1.2rem;
+  color: #b10020;
+  margin-top: 0.7rem;
+}
+
+.info {
+  min-height: 1.2rem;
+  color: #205f20;
+  margin-top: 0.3rem;
+}
+
+.switch-text {
+  text-align: center;
+  color: #666;
+  margin-top: 0.9rem;
+}
+
+.inline-btn {
+  border: none;
+  background: none;
+  color: #6e2ca5;
+  font-weight: 700;
+  cursor: pointer;
+}
+

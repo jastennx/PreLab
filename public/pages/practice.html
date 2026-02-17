@@ -1,0 +1,47 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PreLab | Practice</title>
+  <link rel="icon" type="image/png" href="../assets/prelab-logo.png" />
+  <link rel="stylesheet" href="./practice.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img class="brand-logo" src="../assets/prelab-logo.png" alt="PreLab logo" />
+    </div>
+    <div class="actions">
+      <a href="./dashboard.html">Dashboard</a>
+      <button id="logout-btn">Logout</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="status-card">
+      <h1 id="module-title">Module Quiz</h1>
+      <p>Question <span id="current-number">1</span>/<span id="total-number">1</span></p>
+      <div class="progress"><span id="progress-fill"></span></div>
+    </section>
+
+    <section class="question-card">
+      <h2 id="question-text">Loading question...</h2>
+      <div id="option-list" class="option-list"></div>
+      <button id="next-btn">Next</button>
+      <p id="submit-status" class="submit-status" aria-live="polite"></p>
+    </section>
+
+    <section class="pager-card">
+      <h3>Questions</h3>
+      <div id="pager" class="pager"></div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/practice.js"></script>
+</body>
+</html>

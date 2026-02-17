@@ -1,0 +1,65 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PreLab | Dashboard</title>
+  <link rel="icon" type="image/png" href="../assets/prelab-logo.png" />
+  <link rel="stylesheet" href="./dashboard.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img class="brand-logo" src="../assets/prelab-logo.png" alt="PreLab logo" />
+    </div>
+    <div class="userbox">
+      <p id="user-email">user@email.com</p>
+      <button id="logout-btn">Logout</button>
+    </div>
+  </header>
+
+  <main class="dashboard-layout">
+    <section>
+      <h1 id="welcome-title">Welcome Back, User!</h1>
+      <p class="subtitle">Upload your study material and create interactive mock exams, quizzes, and activities.</p>
+
+      <div class="create-card">
+        <h2>Create new module</h2>
+        <form id="module-form">
+          <label for="subject-name">Subject</label>
+          <input id="subject-name" type="text" required placeholder="e.g. Web Development" />
+
+          <label for="module-title">Module title</label>
+          <input id="module-title" type="text" required placeholder="e.g. Module 1" />
+
+          <label for="study-goal">Goal (optional)</label>
+          <input id="study-goal" type="text" placeholder="e.g. Prepare for midterm" />
+
+          <label for="material-file" class="file-label">
+            Upload study file (PDF or DOCX)
+            <span id="file-indicator" class="file-indicator">No file selected</span>
+          </label>
+          <input id="material-file" type="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
+
+          <label for="material-text">Or paste study material text</label>
+          <textarea id="material-text" placeholder="Paste notes, lecture text, or key concepts..."></textarea>
+
+          <button id="create-module-btn" class="btn primary" type="submit">Create Module</button>
+          <p id="module-message" class="msg"></p>
+        </form>
+      </div>
+    </section>
+
+    <section>
+      <h2>Your Modules</h2>
+      <div id="module-list" class="module-list"></div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/auth.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/dashboard.js"></script>
+</body>
+</html>

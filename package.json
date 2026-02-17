@@ -1,0 +1,22 @@
+{
+  "name": "prelab",
+  "version": "1.0.0",
+  "description": "PreLab - AI-powered study assistant",
+  "main": "server.js",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^4.21.2",
+    "mammoth": "^1.11.0",
+    "multer": "^2.0.2",
+    "pdf-parse": "^2.4.5"
+  }
+}

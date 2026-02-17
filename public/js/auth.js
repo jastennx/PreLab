@@ -59,7 +59,7 @@ window.requireAuthUser = async function requireAuthUser() {
   await window.prelabAuth.init();
 
   if (window.prelabAuth.missingConfig) {
-    alert('Supabase environment variables are missing on the server.');
+    alert('Server config is unavailable. Check Vercel environment variables and function logs.');
     window.location.href = '/pages/home.html';
     return null;
   }

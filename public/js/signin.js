@@ -113,6 +113,12 @@ showPasswordToggle.addEventListener('change', () => {
   setPasswordVisibility(showPasswordToggle.checked);
 });
 
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !signupModal.classList.contains('hidden')) {
+    closeSignupModal();
+  }
+});
+
 authForm.addEventListener('submit', async (event) => {
   event.preventDefault();
   authError.textContent = '';

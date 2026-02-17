@@ -15,10 +15,14 @@ async function bootstrap() {
 function renderResult(result) {
   const ai = result.feedback?.ai || {};
   const review = result.feedback?.review || [];
+  const rawScore = Number(result.score);
+  const formattedScore = Number.isFinite(rawScore)
+    ? `${Number.isInteger(rawScore) ? rawScore : rawScore.toFixed(1)}%`
+    : '-';
 
   document.getElementById('encouragement').textContent =
     ai.encouragement || 'This is a great opportunity to review the material and strengthen your understanding.';
-  document.getElementById('score').textContent = `${result.score}%`;
+  document.getElementById('score').textContent = formattedScore;
   document.getElementById('correct').textContent = `${result.correct_count}/${result.total_questions}`;
 
   const reviewList = document.getElementById('review-list');

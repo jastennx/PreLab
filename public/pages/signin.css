@@ -15,6 +15,7 @@ body {
   min-height: 100vh;
   color: #f2eef9;
   background: radial-gradient(circle at 50% 55%, var(--bg-2), var(--bg-1) 65%, var(--bg-3));
+  line-height: 1.4;
 }
 
 .topbar {
@@ -53,6 +54,7 @@ body {
   color: #121212;
   padding: 1.2rem;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  animation: cardIn 240ms ease-out;
 }
 
 .back-link {
@@ -86,6 +88,20 @@ input {
   border: 1px solid #a8a8a8;
   border-radius: 6px;
   padding: 0.65rem 0.75rem;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+input:focus {
+  outline: none;
+  border-color: #8755bd;
+  box-shadow: 0 0 0 3px rgba(135, 85, 189, 0.17);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid #9f76d0;
+  outline-offset: 2px;
 }
 
 .show-password {
@@ -119,6 +135,13 @@ input {
   cursor: pointer;
   font-size: 1.1rem;
   font-weight: 700;
+  transition: transform 140ms ease, filter 140ms ease, box-shadow 180ms ease;
+}
+
+.btn.dark:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.2);
 }
 
 .error {
@@ -189,6 +212,24 @@ input {
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
   }
 }
 

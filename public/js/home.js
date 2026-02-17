@@ -5,6 +5,11 @@ const demoModal = document.getElementById('demo-modal');
 const closeDemoBtn = document.getElementById('close-demo');
 const demoVideo = document.getElementById('demo-video');
 
+function closeDemoModal() {
+  demoVideo.pause();
+  demoModal.classList.add('hidden');
+}
+
 loginBtn.addEventListener('click', () => {
   window.location.href = '/pages/signin.html?mode=signin';
 });
@@ -23,13 +28,17 @@ watchDemoBtn.addEventListener('click', async () => {
 });
 
 closeDemoBtn.addEventListener('click', () => {
-  demoVideo.pause();
-  demoModal.classList.add('hidden');
+  closeDemoModal();
 });
 
 demoModal.addEventListener('click', (event) => {
   if (event.target !== demoModal) return;
-  demoVideo.pause();
-  demoModal.classList.add('hidden');
+  closeDemoModal();
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && !demoModal.classList.contains('hidden')) {
+    closeDemoModal();
+  }
 });
 

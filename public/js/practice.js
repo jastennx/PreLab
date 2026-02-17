@@ -85,16 +85,19 @@ function setSubmitLoading(isLoading, text = '') {
   isSubmitting = isLoading;
   const nextBtn = document.getElementById('next-btn');
   const status = document.getElementById('submit-status');
+  const value = String(text || '').trim();
 
   if (isLoading) {
     nextBtn.disabled = true;
     nextBtn.textContent = 'Submitting Quiz...';
-    status.textContent = text || 'Quiz is being submitted. Please wait...';
+    status.textContent = value || 'Quiz is being submitted. Please wait...';
+    status.classList.add('visible');
     return;
   }
 
   nextBtn.disabled = false;
-  status.textContent = text || '';
+  status.textContent = value;
+  status.classList.toggle('visible', Boolean(value));
   renderQuestion();
 }
 

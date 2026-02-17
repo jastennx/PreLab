@@ -76,24 +76,31 @@ async function loadModules(userId) {
       btn.addEventListener('click', async () => {
         const moduleId = btn.dataset.id;
         const action = btn.dataset.action;
+        btn.disabled = true;
 
-        if (action === 'delete') {
-          await window.api.del(`/modules/${moduleId}`);
-          await loadModules(userId);
-          return;
+        try {
+          if (action === 'delete') {
+            const shouldDelete = window.confirm('Delete this module and all related quizzes/results?');
+            if (!shouldDelete) return;
+            await window.api.del(`/modules/${moduleId}`);
+            await loadModules(userId);
+            return;
+          }
+
+          if (action === 'summary') {
+            const resultId = btn.dataset.resultId;
+            const resultPayload = await window.api.get(`/results/${resultId}`);
+            window.localStorage.setItem('prelab_result', JSON.stringify(resultPayload.result));
+            window.location.href = '/pages/feedback.html';
+            return;
+          }
+
+          const details = await window.api.get(`/modules/${moduleId}`);
+          window.localStorage.setItem('prelab_module', JSON.stringify(details.module));
+          window.location.href = '/pages/study.html';
+        } finally {
+          btn.disabled = false;
         }
-
-        if (action === 'summary') {
-          const resultId = btn.dataset.resultId;
-          const resultPayload = await window.api.get(`/results/${resultId}`);
-          window.localStorage.setItem('prelab_result', JSON.stringify(resultPayload.result));
-          window.location.href = '/pages/feedback.html';
-          return;
-        }
-
-        const details = await window.api.get(`/modules/${moduleId}`);
-        window.localStorage.setItem('prelab_module', JSON.stringify(details.module));
-        window.location.href = '/pages/study.html';
       });
     });
   } catch (error) {

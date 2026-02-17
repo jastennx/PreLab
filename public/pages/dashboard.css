@@ -17,6 +17,7 @@ body {
   color: #f8f4ff;
   background: radial-gradient(circle at 45% 55%, var(--bg-2), var(--bg-1) 65%, var(--bg-3));
   animation: pageIn 260ms ease-out;
+  line-height: 1.4;
 }
 
 .topbar {
@@ -44,10 +45,15 @@ body {
   display: flex;
   align-items: center;
   gap: 0.8rem;
+  min-width: 0;
 }
 
 #user-email {
   font-size: 0.85rem;
+  max-width: 32vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #logout-btn {
@@ -55,18 +61,31 @@ body {
   color: white;
   border: none;
   border-radius: 8px;
-  padding: 0.5rem 0.8rem;
+  padding: 0.55rem 0.9rem;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.98rem;
   font-weight: 700;
+  line-height: 1;
   cursor: pointer;
   transition: transform 140ms ease, filter 140ms ease, box-shadow 180ms ease;
 }
 
+#logout-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.2);
+}
+
 .dashboard-layout {
-  width: min(1250px, 70vw);
+  width: min(1250px, 92vw);
   margin: 2.4rem auto;
   display: grid;
   gap: 1.4rem;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1.05fr 0.95fr;
+  align-items: start;
 }
 
 h1 {
@@ -76,6 +95,7 @@ h1 {
 .subtitle {
   color: #e7d6ff;
   margin-top: 0.4rem;
+  text-wrap: balance;
 }
 
 .create-card {
@@ -132,6 +152,7 @@ textarea {
   padding: 0.65rem;
   margin-top: 0.3rem;
   transition: border-color 120ms ease, box-shadow 120ms ease;
+  background: #f6f6f8;
 }
 
 input:focus,
@@ -139,6 +160,14 @@ textarea:focus {
   border-color: #8755bd;
   outline: none;
   box-shadow: 0 0 0 3px rgba(135, 85, 189, 0.17);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #9f76d0;
+  outline-offset: 2px;
 }
 
 textarea {
@@ -226,6 +255,7 @@ textarea {
 .module-actions {
   display: flex;
   gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
 .module-actions button {
@@ -240,6 +270,12 @@ textarea {
 .module-actions button:hover {
   transform: translateY(-1px);
   filter: brightness(1.04);
+}
+
+.module-actions button:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .start-btn {
@@ -259,6 +295,10 @@ textarea {
 @media (max-width: 980px) {
   .dashboard-layout {
     grid-template-columns: 1fr;
+  }
+
+  #user-email {
+    max-width: 44vw;
   }
 }
 
@@ -296,6 +336,13 @@ textarea {
   }
   to {
     filter: brightness(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
   }
 }
 

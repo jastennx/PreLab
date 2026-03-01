@@ -18,6 +18,25 @@ const signupModalClose = document.getElementById('signup-modal-close');
 let mode = 'signin';
 let submitCooldownUntil = 0;
 
+function openSignupLoadingPopup() {
+  if (!window.Swal?.fire) return;
+  window.Swal.fire({
+    title: 'Creating account...',
+    text: 'Please wait while we set up your account.',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    showConfirmButton: false,
+    didOpen: () => {
+      window.Swal.showLoading();
+    }
+  });
+}
+
+function closeSignupLoadingPopup() {
+  if (!window.Swal?.close) return;
+  window.Swal.close();
+}
+
 function setSubmitState({ busy = false } = {}) {
   authSubmit.disabled = busy;
   authSubmit.style.opacity = busy ? '0.75' : '1';
@@ -140,10 +159,12 @@ authForm.addEventListener('submit', async (event) => {
   const password = passwordInput.value.trim();
   const confirmPassword = confirmPasswordInput.value.trim();
   const fullName = fullNameInput.value.trim();
+  let isSignupFlow = false;
 
   try {
     setSubmitState({ busy: true });
     if (mode === 'signup') {
+      isSignupFlow = true;
       if (!email || !password || !confirmPassword || !fullName) {
         throw new Error('Please complete all fields before continuing.');
       }
@@ -152,9 +173,11 @@ authForm.addEventListener('submit', async (event) => {
         throw new Error('Password and confirm password do not match.');
       }
 
+      openSignupLoadingPopup();
       const emailRedirectTo = `${window.location.origin}/pages/account-created`;
       const signup = await window.prelabAuth.signUp(email, password, fullName, emailRedirectTo);
       await syncUserRecord(signup.user, fullName);
+      closeSignupLoadingPopup();
       authInfo.textContent = 'Account created. Please confirm your email before signing in.';
       openSignupModal();
       setMode('signin');
@@ -175,6 +198,7 @@ authForm.addEventListener('submit', async (event) => {
       startCooldown(45);
     }
   } finally {
+    if (isSignupFlow) closeSignupLoadingPopup();
     setSubmitState({ busy: false });
   }
 });

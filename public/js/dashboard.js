@@ -4,11 +4,11 @@ async function bootstrap() {
   const authUser = await window.requireAuthUser();
   if (!authUser) return;
 
-  document.getElementById('user-email').textContent = authUser.email;
   const preferredName =
     authUser.user_metadata?.full_name ||
     authUser.user_metadata?.name ||
     (authUser.email ? authUser.email.split('@')[0] : 'User');
+  document.getElementById('user-email').textContent = preferredName;
   const knownUsers = JSON.parse(window.localStorage.getItem('prelab_known_users') || '[]');
   const isReturningUser = Array.isArray(knownUsers) && knownUsers.includes(authUser.id);
   document.getElementById('welcome-title').textContent = isReturningUser

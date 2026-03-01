@@ -1,5 +1,3 @@
-Place your app logo file here as:
-prelab-logo.png
-
-All pages now reference:
-/assets/prelab-logo.png
+PreLab brand assets:
+- prelab-logo.svg (wordmark + mark, used in page headers/cards)
+- prelab-mark.svg (square icon, used as favicon)

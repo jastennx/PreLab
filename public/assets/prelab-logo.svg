@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="240" viewBox="0 0 860 240" role="img" aria-labelledby="title desc">
+  <title id="title">PreLab Logo</title>
+  <desc id="desc">PreLab logo with geometric mark and wordmark.</desc>
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d4b4ff"/>
+      <stop offset="100%" stop-color="#7e36c6"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5e8ff"/>
+      <stop offset="100%" stop-color="#bf82ff"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(26 20)">
+    <rect x="0" y="0" width="200" height="200" rx="48" fill="#1a0833"/>
+    <rect x="14" y="14" width="172" height="172" rx="38" fill="#2a1150"/>
+
+    <polygon points="62,58 100,36 138,58 100,80" fill="url(#g1)"/>
+    <polygon points="40,98 78,76 116,98 78,120" fill="url(#g2)"/>
+    <polygon points="84,98 122,76 160,98 122,120" fill="url(#g1)"/>
+    <polygon points="62,138 100,116 138,138 100,160" fill="url(#g2)"/>
+
+    <circle cx="100" cy="100" r="22" fill="#210d40"/>
+    <text x="100" y="108" text-anchor="middle" fill="#efe3ff" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="800">P</text>
+  </g>
+
+  <g transform="translate(252 56)">
+    <text x="0" y="82" fill="#efe5ff" font-family="Segoe UI, Arial, sans-serif" font-size="90" font-weight="800" letter-spacing="0.5">PreLab</text>
+    <rect x="2" y="96" width="318" height="10" rx="5" fill="url(#g1)"/>
+    <text x="2" y="138" fill="#c9abd4" font-family="Segoe UI, Arial, sans-serif" font-size="26" font-weight="600" letter-spacing="4">LEARN  PRACTICE  SUCCEED</text>
+  </g>
+</svg>

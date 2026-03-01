@@ -5,6 +5,20 @@ const demoModal = document.getElementById('demo-modal');
 const closeDemoBtn = document.getElementById('close-demo');
 const demoVideo = document.getElementById('demo-video');
 
+function redirectSignupHashToAccountCreated() {
+  const rawHash = window.location.hash || '';
+  if (!rawHash.startsWith('#')) return;
+
+  const hashParams = new URLSearchParams(rawHash.slice(1));
+  const type = hashParams.get('type');
+  const hasAuthPayload = Boolean(hashParams.get('access_token') || hashParams.get('error_code'));
+  if (type !== 'signup' || !hasAuthPayload) return;
+
+  window.location.replace(`/pages/account-created${rawHash}`);
+}
+
+redirectSignupHashToAccountCreated();
+
 function closeDemoModal() {
   demoVideo.pause();
   demoModal.classList.add('hidden');

@@ -1,6 +1,7 @@
 :root {
-  --bg-1: #130326;
-  --bg-2: #2a0f52;
+  --bg-1: #120124;
+  --bg-2: #6b30a2;
+  --bg-3: #18022d;
   --card: #ffffff;
   --text: #111827;
   --muted: #4b5563;
@@ -16,7 +17,7 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: radial-gradient(circle at top left, var(--bg-2), var(--bg-1));
+  background: radial-gradient(circle at 50% 55%, var(--bg-2), var(--bg-1) 65%, var(--bg-3));
   color: var(--text);
 }
 

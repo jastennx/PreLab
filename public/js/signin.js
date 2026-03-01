@@ -37,6 +37,27 @@ function closeSignupLoadingPopup() {
   window.Swal.close();
 }
 
+function showVerifiedToastIfNeeded(params) {
+  if (params.get('verified') !== '1') return;
+  if (!window.Swal?.fire) return;
+
+  window.Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon: 'success',
+    title: 'Account successfully verified',
+    showConfirmButton: false,
+    timer: 2400,
+    timerProgressBar: true
+  });
+
+  const next = new URLSearchParams(params);
+  next.delete('verified');
+  const query = next.toString();
+  const nextUrl = `${window.location.pathname}${query ? `?${query}` : ''}`;
+  window.history.replaceState({}, '', nextUrl);
+}
+
 function setSubmitState({ busy = false } = {}) {
   authSubmit.disabled = busy;
   authSubmit.style.opacity = busy ? '0.75' : '1';
@@ -124,6 +145,7 @@ function setMode(nextMode) {
 
 const params = new URLSearchParams(window.location.search);
 setMode(params.get('mode') === 'signup' ? 'signup' : 'signin');
+showVerifiedToastIfNeeded(params);
 
 switchModeBtn.addEventListener('click', () => setMode(mode === 'signin' ? 'signup' : 'signin'));
 signupModalClose.addEventListener('click', closeSignupModal);

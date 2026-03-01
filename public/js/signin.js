@@ -87,6 +87,7 @@ function setMode(nextMode) {
     setPasswordVisibility(false);
     fullNameInput.classList.add('hidden');
     fullNameLabel.classList.add('hidden');
+    fullNameInput.required = false;
   } else {
     authTitle.textContent = 'Sign up';
     authSubmit.textContent = 'Create account';
@@ -98,6 +99,7 @@ function setMode(nextMode) {
     confirmPasswordInput.required = true;
     fullNameInput.classList.remove('hidden');
     fullNameLabel.classList.remove('hidden');
+    fullNameInput.required = true;
   }
 }
 
@@ -142,6 +144,10 @@ authForm.addEventListener('submit', async (event) => {
   try {
     setSubmitState({ busy: true });
     if (mode === 'signup') {
+      if (!email || !password || !confirmPassword || !fullName) {
+        throw new Error('Please complete all fields before continuing.');
+      }
+
       if (password !== confirmPassword) {
         throw new Error('Password and confirm password do not match.');
       }

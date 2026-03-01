@@ -10,6 +10,8 @@ const confirmPasswordInput = document.getElementById('confirm-password');
 const confirmPasswordLabel = document.getElementById('confirm-password-label');
 const showPasswordWrap = document.getElementById('show-password-wrap');
 const showPasswordToggle = document.getElementById('show-password');
+const forgotPasswordWrap = document.getElementById('forgot-password-wrap');
+const forgotPasswordBtn = document.getElementById('forgot-password-btn');
 const fullNameInput = document.getElementById('full-name');
 const fullNameLabel = document.getElementById('full-name-label');
 const signupModal = document.getElementById('signup-modal');
@@ -53,6 +55,27 @@ function showVerifiedToastIfNeeded(params) {
 
   const next = new URLSearchParams(params);
   next.delete('verified');
+  const query = next.toString();
+  const nextUrl = `${window.location.pathname}${query ? `?${query}` : ''}`;
+  window.history.replaceState({}, '', nextUrl);
+}
+
+function showPasswordResetToastIfNeeded(params) {
+  if (params.get('reset') !== '1') return;
+  if (!window.Swal?.fire) return;
+
+  window.Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon: 'success',
+    title: 'Password updated successfully',
+    showConfirmButton: false,
+    timer: 2400,
+    timerProgressBar: true
+  });
+
+  const next = new URLSearchParams(params);
+  next.delete('reset');
   const query = next.toString();
   const nextUrl = `${window.location.pathname}${query ? `?${query}` : ''}`;
   window.history.replaceState({}, '', nextUrl);
@@ -122,6 +145,7 @@ function setMode(nextMode) {
     confirmPasswordInput.classList.add('hidden');
     confirmPasswordLabel.classList.add('hidden');
     showPasswordWrap.classList.add('hidden');
+    forgotPasswordWrap.classList.remove('hidden');
     confirmPasswordInput.required = false;
     showPasswordToggle.checked = false;
     setPasswordVisibility(false);
@@ -136,6 +160,7 @@ function setMode(nextMode) {
     confirmPasswordInput.classList.remove('hidden');
     confirmPasswordLabel.classList.remove('hidden');
     showPasswordWrap.classList.remove('hidden');
+    forgotPasswordWrap.classList.add('hidden');
     confirmPasswordInput.required = true;
     fullNameInput.classList.remove('hidden');
     fullNameLabel.classList.remove('hidden');
@@ -146,6 +171,7 @@ function setMode(nextMode) {
 const params = new URLSearchParams(window.location.search);
 setMode(params.get('mode') === 'signup' ? 'signup' : 'signin');
 showVerifiedToastIfNeeded(params);
+showPasswordResetToastIfNeeded(params);
 
 switchModeBtn.addEventListener('click', () => setMode(mode === 'signin' ? 'signup' : 'signin'));
 signupModalClose.addEventListener('click', closeSignupModal);
@@ -154,6 +180,43 @@ signupModal.addEventListener('click', (event) => {
 });
 showPasswordToggle.addEventListener('change', () => {
   setPasswordVisibility(showPasswordToggle.checked);
+});
+
+forgotPasswordBtn.addEventListener('click', async () => {
+  await window.prelabAuth.init();
+  if (window.prelabAuth?.missingConfig) {
+    authError.textContent = 'Supabase server config is missing. Set SUPABASE_URL and SUPABASE_ANON_KEY.';
+    return;
+  }
+
+  let email = document.getElementById('email').value.trim();
+  if (!email) {
+    const prompt = await window.Swal.fire({
+      title: 'Reset password',
+      text: 'Enter your account email to receive a reset link.',
+      input: 'email',
+      inputPlaceholder: 'you@example.com',
+      showCancelButton: true,
+      confirmButtonText: 'Send Link'
+    });
+    if (!prompt.isConfirmed) return;
+    email = String(prompt.value || '').trim();
+  }
+
+  if (!email) {
+    authError.textContent = 'Please enter your email first.';
+    return;
+  }
+
+  try {
+    await window.prelabAuth.requestPasswordReset(email, `${window.location.origin}/pages/reset-password`);
+    await window.prelabDialog.alert('Password reset link sent. Please check your email.', {
+      title: 'Email Sent',
+      icon: 'success'
+    });
+  } catch (error) {
+    authError.textContent = getAuthErrorMessage(error);
+  }
 });
 
 document.addEventListener('keydown', (event) => {

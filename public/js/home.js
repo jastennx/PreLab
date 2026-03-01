@@ -12,9 +12,16 @@ function redirectSignupHashToAccountCreated() {
   const hashParams = new URLSearchParams(rawHash.slice(1));
   const type = hashParams.get('type');
   const hasAuthPayload = Boolean(hashParams.get('access_token') || hashParams.get('error_code'));
-  if (type !== 'signup' || !hasAuthPayload) return;
+  if (!hasAuthPayload) return;
 
-  window.location.replace(`/pages/account-created${rawHash}`);
+  if (type === 'signup') {
+    window.location.replace(`/pages/account-created${rawHash}`);
+    return;
+  }
+
+  if (type === 'recovery') {
+    window.location.replace(`/pages/reset-password${rawHash}`);
+  }
 }
 
 redirectSignupHashToAccountCreated();

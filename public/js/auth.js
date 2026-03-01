@@ -38,6 +38,43 @@ window.prelabAuth = {
     if (error) throw error;
     return data;
   },
+  async requestPasswordReset(email, redirectTo = '') {
+    const client = await this.init();
+    if (!client) throw new Error('Supabase client config missing');
+
+    const { error } = await client.auth.resetPasswordForEmail(email, {
+      ...(redirectTo ? { redirectTo } : {})
+    });
+    if (error) throw error;
+  },
+  async setSessionFromRecoveryHash() {
+    const client = await this.init();
+    if (!client) throw new Error('Supabase client config missing');
+
+    const hash = window.location.hash || '';
+    if (!hash.startsWith('#')) return false;
+
+    const params = new URLSearchParams(hash.slice(1));
+    const type = params.get('type');
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+    if (type !== 'recovery' || !accessToken || !refreshToken) return false;
+
+    const { error } = await client.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken
+    });
+    if (error) throw error;
+    return true;
+  },
+  async updatePassword(newPassword) {
+    const client = await this.init();
+    if (!client) throw new Error('Supabase client config missing');
+
+    const { data, error } = await client.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+    return data;
+  },
   async signOut() {
     const client = await this.init();
     if (!client) return;

@@ -120,6 +120,11 @@ input:focus-visible {
   padding: 0;
 }
 
+.forgot-wrap {
+  margin-top: 0.45rem;
+  text-align: right;
+}
+
 .hidden {
   display: none;
 }

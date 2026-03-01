@@ -11,11 +11,11 @@ function closeDemoModal() {
 }
 
 loginBtn.addEventListener('click', () => {
-  window.location.href = '/pages/signin.html?mode=signin';
+  window.location.href = '/pages/signin?mode=signin';
 });
 
 signupBtn.addEventListener('click', () => {
-  window.location.href = '/pages/signin.html?mode=signup';
+  window.location.href = '/pages/signin?mode=signup';
 });
 
 watchDemoBtn.addEventListener('click', async () => {

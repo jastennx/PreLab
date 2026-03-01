@@ -80,7 +80,14 @@ async function loadModules(userId) {
 
         try {
           if (action === 'delete') {
-            const shouldDelete = window.confirm('Delete this module and all related quizzes/results?');
+            const shouldDelete = await window.prelabDialog.confirm(
+              'Delete this module and all related quizzes/results?',
+              {
+                title: 'Delete Module',
+                icon: 'warning',
+                confirmButtonText: 'Delete'
+              }
+            );
             if (!shouldDelete) return;
             await window.api.del(`/modules/${moduleId}`);
             await loadModules(userId);
@@ -91,13 +98,13 @@ async function loadModules(userId) {
             const resultId = btn.dataset.resultId;
             const resultPayload = await window.api.get(`/results/${resultId}`);
             window.localStorage.setItem('prelab_result', JSON.stringify(resultPayload.result));
-            window.location.href = '/pages/feedback.html';
+            window.location.href = '/pages/feedback';
             return;
           }
 
           const details = await window.api.get(`/modules/${moduleId}`);
           window.localStorage.setItem('prelab_module', JSON.stringify(details.module));
-          window.location.href = '/pages/study.html';
+          window.location.href = '/pages/study';
         } finally {
           btn.disabled = false;
         }

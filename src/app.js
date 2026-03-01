@@ -1,4 +1,5 @@
-﻿const path = require('path');
+const path = require('path');
+const fs = require('fs');
 const express = require('express');
 const cors = require('cors');
 const config = require('./config');
@@ -20,8 +21,18 @@ app.use('/api', apiRoutes);
 const staticDir = path.join(config.rootDir, 'public');
 app.use(express.static(staticDir));
 
+app.get('/pages/:page', (req, res, next) => {
+  const page = String(req.params.page || '').trim();
+  if (!/^[a-zA-Z0-9_-]+$/.test(page)) return next();
+
+  const htmlFile = path.join(staticDir, 'pages', `${page}.html`);
+  if (!fs.existsSync(htmlFile)) return next();
+
+  return res.sendFile(htmlFile);
+});
+
 app.get('/', (_req, res) => {
-  res.redirect('/pages/home.html');
+  res.redirect('/pages/home');
 });
 
 app.use('/api', (_req, res) => {

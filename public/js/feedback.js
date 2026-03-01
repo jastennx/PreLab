@@ -4,8 +4,11 @@ async function bootstrap() {
 
   const result = JSON.parse(window.localStorage.getItem('prelab_result') || '{}');
   if (!result.id) {
-    alert('No result found.');
-    window.location.href = '/pages/dashboard.html';
+    await window.prelabDialog.alert('No result found.', {
+      title: 'Result Missing',
+      icon: 'warning'
+    });
+    window.location.href = '/pages/dashboard';
     return;
   }
 

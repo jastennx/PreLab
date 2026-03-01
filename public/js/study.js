@@ -4,8 +4,11 @@ async function bootstrap() {
 
   const module = JSON.parse(window.localStorage.getItem('prelab_module') || '{}');
   if (!module.id) {
-    alert('Select a module first from dashboard.');
-    window.location.href = '/pages/dashboard.html';
+    await window.prelabDialog.alert('Select a module first from dashboard.', {
+      title: 'Module Required',
+      icon: 'warning'
+    });
+    window.location.href = '/pages/dashboard';
     return;
   }
 
@@ -209,10 +212,16 @@ document.getElementById('generate-explanation').addEventListener('click', async 
       lowered.includes('429') ||
       lowered.includes('insufficient credits')
     ) {
-      alert('AI quota/credits are exhausted. Use another OpenRouter free key/model or try again later.');
+      await window.prelabDialog.alert(
+        'AI quota/credits are exhausted. Use another OpenRouter free key/model or try again later.',
+        {
+          title: 'Quota Reached',
+          icon: 'warning'
+        }
+      );
       return;
     }
-    alert(message);
+    await window.prelabDialog.alert(message, { title: 'Request Failed', icon: 'error' });
   }
 });
 
@@ -231,11 +240,11 @@ document.getElementById('start-practice').addEventListener('click', async () => 
     });
 
     if (data.warning) {
-      alert(data.warning);
+      await window.prelabDialog.alert(data.warning, { title: 'Notice', icon: 'warning' });
     }
     window.localStorage.setItem('prelab_quiz', JSON.stringify(data));
     setQuizLoading(false, '');
-    window.location.href = '/pages/practice.html';
+    window.location.href = '/pages/practice';
   } catch (error) {
     setQuizLoading(false, '');
     const message = String(error.message || '');
@@ -247,10 +256,16 @@ document.getElementById('start-practice').addEventListener('click', async () => 
       lowered.includes('429') ||
       lowered.includes('insufficient credits')
     ) {
-      alert('AI quota/credits are exhausted. Use another OpenRouter free key/model or try again later.');
+      await window.prelabDialog.alert(
+        'AI quota/credits are exhausted. Use another OpenRouter free key/model or try again later.',
+        {
+          title: 'Quota Reached',
+          icon: 'warning'
+        }
+      );
       return;
     }
-    alert(message);
+    await window.prelabDialog.alert(message, { title: 'Request Failed', icon: 'error' });
   }
 });
 

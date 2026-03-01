@@ -146,7 +146,8 @@ authForm.addEventListener('submit', async (event) => {
         throw new Error('Password and confirm password do not match.');
       }
 
-      const signup = await window.prelabAuth.signUp(email, password, fullName);
+      const emailRedirectTo = `${window.location.origin}/pages/account-created`;
+      const signup = await window.prelabAuth.signUp(email, password, fullName, emailRedirectTo);
       await syncUserRecord(signup.user, fullName);
       authInfo.textContent = 'Account created. Please confirm your email before signing in.';
       openSignupModal();
@@ -161,7 +162,7 @@ authForm.addEventListener('submit', async (event) => {
       'prelab_user',
       JSON.stringify({ id: user.id, email: user.email, full_name: user.user_metadata?.full_name || '' })
     );
-    window.location.href = '/pages/dashboard.html';
+    window.location.href = '/pages/dashboard';
   } catch (error) {
     authError.textContent = getAuthErrorMessage(error);
     if (Number(error?.status || 0) === 429 || `${error?.message || ''}`.toLowerCase().includes('rate limit')) {

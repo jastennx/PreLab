@@ -15,7 +15,7 @@ window.prelabAuth = {
     this.missingConfig = false;
     return this.client;
   },
-  async signUp(email, password, fullName) {
+  async signUp(email, password, fullName, emailRedirectTo = '') {
     const client = await this.init();
     if (!client) throw new Error('Supabase client config missing');
 
@@ -23,7 +23,8 @@ window.prelabAuth = {
       email,
       password,
       options: {
-        data: { full_name: fullName || '' }
+        data: { full_name: fullName || '' },
+        ...(emailRedirectTo ? { emailRedirectTo } : {})
       }
     });
     if (error) throw error;
@@ -59,15 +60,18 @@ window.requireAuthUser = async function requireAuthUser() {
   await window.prelabAuth.init();
 
   if (window.prelabAuth.missingConfig) {
-    alert('Server config is unavailable. Check Vercel environment variables and function logs.');
-    window.location.href = '/pages/home.html';
+    await window.prelabDialog.alert('Server config is unavailable. Check Vercel environment variables and function logs.', {
+      title: 'Configuration Error',
+      icon: 'error'
+    });
+    window.location.href = '/pages/home';
     return null;
   }
 
   try {
     const user = await window.prelabAuth.getUser();
     if (!user) {
-      window.location.href = '/pages/home.html';
+      window.location.href = '/pages/home';
       return null;
     }
 
@@ -77,17 +81,21 @@ window.requireAuthUser = async function requireAuthUser() {
     );
     return user;
   } catch (_error) {
-    window.location.href = '/pages/home.html';
+    window.location.href = '/pages/home';
     return null;
   }
 };
 
 window.confirmAndSignOut = async function confirmAndSignOut() {
-  const shouldLogout = window.confirm('Are you sure you want to log out?');
+  const shouldLogout = await window.prelabDialog.confirm('Are you sure you want to log out?', {
+    title: 'Log out',
+    icon: 'warning',
+    confirmButtonText: 'Log out'
+  });
   if (!shouldLogout) return false;
 
   await window.prelabAuth.signOut();
-  window.location.href = '/pages/home.html';
+  window.location.href = '/pages/home';
   return true;
 };
 

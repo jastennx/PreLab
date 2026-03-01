@@ -11,8 +11,11 @@ async function bootstrap() {
   const quizWrapper = JSON.parse(window.localStorage.getItem('prelab_quiz') || '{}');
 
   if (!module.id || !quizWrapper.quizId || !quizWrapper.quiz?.questions?.length) {
-    alert('No quiz found. Generate one from Study page.');
-    window.location.href = '/pages/study.html';
+    await window.prelabDialog.alert('No quiz found. Generate one from Study page.', {
+      title: 'Quiz Missing',
+      icon: 'warning'
+    });
+    window.location.href = '/pages/study';
     return;
   }
 
@@ -115,7 +118,10 @@ document.getElementById('next-btn').addEventListener('click', async () => {
 
   const hasBlank = answers.some((item) => item === null);
   if (hasBlank) {
-    alert('Please answer all questions before submitting.');
+    await window.prelabDialog.alert('Please answer all questions before submitting.', {
+      title: 'Incomplete Answers',
+      icon: 'warning'
+    });
     return;
   }
 
@@ -134,10 +140,10 @@ document.getElementById('next-btn').addEventListener('click', async () => {
 
     window.localStorage.setItem('prelab_result', JSON.stringify(data.result));
     setSubmitLoading(false, '');
-    window.location.href = '/pages/feedback.html';
+    window.location.href = '/pages/feedback';
   } catch (error) {
     setSubmitLoading(false, '');
-    alert(error.message);
+    await window.prelabDialog.alert(error.message, { title: 'Submit Failed', icon: 'error' });
   }
 });
 

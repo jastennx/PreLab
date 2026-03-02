@@ -71,7 +71,7 @@ function renderQuestion() {
 
     btn.addEventListener('click', () => {
       if (isSubmitting) return;
-      answers[currentIndex] = idx;
+      answers[currentIndex] = answers[currentIndex] === idx ? null : idx;
       renderPager();
       renderQuestion();
     });

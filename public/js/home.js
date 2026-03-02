@@ -1,8 +1,11 @@
 const loginBtn = document.getElementById('show-login');
 const signupBtn = document.getElementById('show-signup');
+const loginHeroBtn = document.getElementById('show-login-hero');
+const signupHeroBtn = document.getElementById('show-signup-hero');
 const watchDemoBtn = document.getElementById('watch-demo');
 const demoModal = document.getElementById('demo-modal');
 const closeDemoBtn = document.getElementById('close-demo');
+const demoOverlay = document.getElementById('demo-overlay');
 const demoVideo = document.getElementById('demo-video');
 
 function redirectSignupHashToAccountCreated() {
@@ -31,13 +34,19 @@ function closeDemoModal() {
   demoModal.classList.add('hidden');
 }
 
-loginBtn.addEventListener('click', () => {
+function goToSignin() {
   window.location.href = '/pages/signin?mode=signin';
-});
+}
 
-signupBtn.addEventListener('click', () => {
+function goToSignup() {
   window.location.href = '/pages/signin?mode=signup';
-});
+}
+
+loginBtn.addEventListener('click', goToSignin);
+if (loginHeroBtn) loginHeroBtn.addEventListener('click', goToSignin);
+
+signupBtn.addEventListener('click', goToSignup);
+if (signupHeroBtn) signupHeroBtn.addEventListener('click', goToSignup);
 
 watchDemoBtn.addEventListener('click', async () => {
   demoModal.classList.remove('hidden');
@@ -51,6 +60,12 @@ watchDemoBtn.addEventListener('click', async () => {
 closeDemoBtn.addEventListener('click', () => {
   closeDemoModal();
 });
+
+if (demoOverlay) {
+  demoOverlay.addEventListener('click', () => {
+    closeDemoModal();
+  });
+}
 
 demoModal.addEventListener('click', (event) => {
   if (event.target !== demoModal) return;

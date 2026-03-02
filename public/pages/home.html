@@ -8,52 +8,84 @@
   <link rel="stylesheet" href="/pages/home.css" />
 </head>
 <body>
+  <!-- Decorative background orbs -->
+  <div class="bg-orb bg-orb--1"></div>
+  <div class="bg-orb bg-orb--2"></div>
+  <div class="bg-orb bg-orb--3"></div>
+
   <header class="topbar">
     <div class="brand">
-      <img class="brand-logo" src="/assets/prelab-logo.svg" alt="PreLab logo" />
+      <img class="brand-logo" src="/assets/prelab-logo.png" alt="PreLab logo" />
     </div>
+    <nav class="topbar-nav">
+      <button id="show-login" class="nav-btn nav-btn--signin">Sign in</button>
+      <button id="show-signup" class="nav-btn nav-btn--signup">Get Started</button>
+    </nav>
   </header>
 
   <main class="home-wrap">
-    <section class="hero-card">
-      <p class="badge">AI powered Learning Platform</p>
-      <h1>Learn, Practice and <span>Succeed</span></h1>
-      <p class="subtitle">
-        Master any subject with personalized practice activities, interactive quizzes,
-        and AI-powered feedback.
-      </p>
-      <div class="hero-actions">
-        <button id="show-login" class="btn primary">Sign in</button>
-        <button id="show-signup" class="btn ghost">Sign up</button>
+    <section class="hero">
+      <div class="hero-content">
+        <p class="badge"><span class="badge-dot"></span>AI-Powered Learning Platform</p>
+        <h1>Learn, Practice<br/>and <span class="gradient-text">Succeed</span></h1>
+        <p class="subtitle">
+          Master any subject with personalized practice activities, interactive quizzes,
+          and AI-powered feedback, all in one platform.
+        </p>
+        <div class="hero-actions">
+          <button id="show-login-hero" class="btn btn--primary btn--lg">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Sign in
+          </button>
+          <button id="show-signup-hero" class="btn btn--outline btn--lg">Sign up free</button>
+          <button id="watch-demo" class="btn btn--ghost btn--lg">
+            <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Watch Demo
+          </button>
+        </div>
       </div>
-      <div class="demo-action-row">
-        <button id="watch-demo" class="btn ghost">Watch Demo</button>
-      </div>
+    </section>
 
+    <section class="features">
+      <h2 class="section-title">Everything you need to ace your exams</h2>
       <div class="feature-grid">
-        <article class="feature">
+        <article class="feature-card">
+          <div class="feature-icon">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 1 5 5c0 2.76-5 8-5 8S7 9.76 7 7a5 5 0 0 1 5-5z"/><circle cx="12" cy="7" r="1.5"/><path d="M3 20h18"/><path d="M5.5 16l2-4"/><path d="M18.5 16l-2-4"/></svg>
+          </div>
           <h3>AI-Powered Study</h3>
-          <p>Smart chatbot guides you through topics and creates personalized study materials.</p>
+          <p>Smart chatbot that guides you through topics and creates personalized study materials tailored to your needs.</p>
         </article>
-        <article class="feature">
+        <article class="feature-card">
+          <div class="feature-icon">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          </div>
           <h3>Practice Activities</h3>
-          <p>Generate quizzes and mock exams tailored to your selected topics and modules.</p>
+          <p>Generate quizzes and mock exams precisely tailored to your selected topics, goals, and difficulty preferences.</p>
         </article>
-        <article class="feature">
+        <article class="feature-card">
+          <div class="feature-icon">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
           <h3>Instant Feedback</h3>
-          <p>Get score analysis, weak-area detection, and clear next-step study suggestions.</p>
+          <p>Get detailed score analysis, weak-area detection, and actionable next-step study recommendations.</p>
         </article>
       </div>
     </section>
   </main>
 
+  <footer class="site-footer">
+    <p>&copy; 2026 PreLab. Built for learners, powered by AI.</p>
+  </footer>
+
   <div id="demo-modal" class="demo-modal hidden" role="dialog" aria-modal="true" aria-label="PreLab demo video">
+    <div class="demo-overlay" id="demo-overlay"></div>
     <div class="demo-dialog">
       <button id="close-demo" class="close-demo" type="button" aria-label="Close demo">&times;</button>
       <video id="demo-video" controls preload="metadata">
         <source src="/demo/prelab-demo-720p.mp4" type="video/mp4" />
       </video>
-      <p class="demo-note">Step by step video tutorial on how to use PreLab <code></code></p>
+      <p class="demo-note">Step-by-step video tutorial on how to use PreLab</p>
     </div>
   </div>
 

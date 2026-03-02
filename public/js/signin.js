@@ -8,12 +8,14 @@ const switchLabel = document.getElementById('switch-label');
 const passwordInput = document.getElementById('password');
 const confirmPasswordInput = document.getElementById('confirm-password');
 const confirmPasswordLabel = document.getElementById('confirm-password-label');
+const confirmPasswordWrap = document.getElementById('confirm-password-wrap');
 const showPasswordWrap = document.getElementById('show-password-wrap');
 const showPasswordToggle = document.getElementById('show-password');
 const forgotPasswordWrap = document.getElementById('forgot-password-wrap');
 const forgotPasswordBtn = document.getElementById('forgot-password-btn');
 const fullNameInput = document.getElementById('full-name');
 const fullNameLabel = document.getElementById('full-name-label');
+const fullNameWrap = document.getElementById('full-name-wrap');
 const signupModal = document.getElementById('signup-modal');
 const signupModalClose = document.getElementById('signup-modal-close');
 
@@ -144,6 +146,7 @@ function setMode(nextMode) {
     switchModeBtn.textContent = 'Sign up';
     confirmPasswordInput.classList.add('hidden');
     confirmPasswordLabel.classList.add('hidden');
+    if (confirmPasswordWrap) confirmPasswordWrap.classList.add('hidden');
     showPasswordWrap.classList.add('hidden');
     forgotPasswordWrap.classList.remove('hidden');
     confirmPasswordInput.required = false;
@@ -151,6 +154,7 @@ function setMode(nextMode) {
     setPasswordVisibility(false);
     fullNameInput.classList.add('hidden');
     fullNameLabel.classList.add('hidden');
+    if (fullNameWrap) fullNameWrap.classList.add('hidden');
     fullNameInput.required = false;
   } else {
     authTitle.textContent = 'Sign up';
@@ -159,11 +163,13 @@ function setMode(nextMode) {
     switchModeBtn.textContent = 'Sign in';
     confirmPasswordInput.classList.remove('hidden');
     confirmPasswordLabel.classList.remove('hidden');
+    if (confirmPasswordWrap) confirmPasswordWrap.classList.remove('hidden');
     showPasswordWrap.classList.remove('hidden');
     forgotPasswordWrap.classList.add('hidden');
     confirmPasswordInput.required = true;
     fullNameInput.classList.remove('hidden');
     fullNameLabel.classList.remove('hidden');
+    if (fullNameWrap) fullNameWrap.classList.remove('hidden');
     fullNameInput.required = true;
   }
 }

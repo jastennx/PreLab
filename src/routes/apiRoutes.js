@@ -21,6 +21,12 @@ function fail(res, error, code = 500) {
   res.status(code).json({ error: error.message || 'Unexpected error' });
 }
 
+const MAX_QUIZ_GUIDANCE_LENGTH = 600;
+
+function normalizeQuizGuidance(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim().slice(0, MAX_QUIZ_GUIDANCE_LENGTH);
+}
+
 async function ensurePublicUser(userId) {
   if (!userId) throw new Error('userId is required');
 
@@ -288,6 +294,7 @@ router.post('/study/explain', async (req, res) => {
 router.post('/practice/generate', async (req, res) => {
   try {
     const { moduleId, userId, questionCount } = req.body;
+    const quizGuidance = normalizeQuizGuidance(req.body.quizGuidance);
     if (!moduleId || !userId) {
       return res.status(400).json({ error: 'moduleId and userId are required' });
     }
@@ -315,10 +322,16 @@ router.post('/practice/generate', async (req, res) => {
 
     if (existingQuizError) throw existingQuizError;
 
-    const reusableQuiz = (existingQuizzes || []).find((q) => {
-      const count = Array.isArray(q?.quiz_json?.questions) ? q.quiz_json.questions.length : 0;
-      return count === safeCount;
-    });
+    const canReuseQuiz = !quizGuidance;
+    const reusableQuiz = canReuseQuiz
+      ? (existingQuizzes || []).find((q) => {
+          const count = Array.isArray(q?.quiz_json?.questions) ? q.quiz_json.questions.length : 0;
+          const storedGuidance = normalizeQuizGuidance(
+            q?.quiz_json?.custom_guidance || q?.quiz_json?.quiz_guidance || ''
+          );
+          return count === safeCount && storedGuidance === quizGuidance;
+        })
+      : null;
 
     if (reusableQuiz) {
       const reusedCount = Array.isArray(reusableQuiz.quiz_json?.questions)
@@ -339,7 +352,8 @@ router.post('/practice/generate', async (req, res) => {
       moduleTitle: module.title,
       subjectName: module.subjects?.name || 'General',
       materialText: module.source_text,
-      count: safeCount
+      count: safeCount,
+      quizGuidance
     });
 
     const { data: quizRecord, error: quizError } = await supabaseAdmin

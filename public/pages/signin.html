@@ -8,55 +8,88 @@
   <link rel="stylesheet" href="./signin.css" />
 </head>
 <body>
+  <div class="bg-orb bg-orb--1"></div>
+  <div class="bg-orb bg-orb--2"></div>
+
   <header class="topbar">
     <a class="brand" href="/pages/home">
-      <img class="brand-logo" src="../assets/prelab-logo.svg" alt="PreLab logo" />
+      <img class="brand-logo" src="../assets/prelab-logo.png" alt="PreLab logo" />
     </a>
   </header>
 
   <main class="auth-page">
     <section class="auth-card">
-      <a class="back-link" href="/pages/home">&larr; Back</a>
+      <a class="back-link" href="/pages/home">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        Back
+      </a>
       <h2 id="auth-title">Sign in</h2>
       <p class="auth-subtitle">Welcome back to your learning journey.</p>
 
       <form id="auth-form">
-        <label for="email">Email address</label>
-        <input id="email" type="email" required placeholder="you@example.com" />
+        <div class="form-group">
+          <label for="email">Email address</label>
+          <div class="input-wrap">
+            <svg class="input-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m2 7 10 6 10-6"/></svg>
+            <input id="email" type="email" required placeholder="you@example.com" />
+          </div>
+        </div>
 
-        <label for="password">Password</label>
-        <input id="password" type="password" minlength="6" required placeholder="At least 6 characters" />
-        <p id="forgot-password-wrap" class="forgot-wrap">
-          <button id="forgot-password-btn" class="inline-btn" type="button">Forgot password?</button>
-        </p>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <svg class="input-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input id="password" type="password" minlength="6" required placeholder="At least 6 characters" />
+          </div>
+          <p id="forgot-password-wrap" class="forgot-wrap">
+            <button id="forgot-password-btn" class="inline-btn" type="button">Forgot password?</button>
+          </p>
+        </div>
 
-        <label id="confirm-password-label" for="confirm-password" class="hidden">Confirm password</label>
-        <input id="confirm-password" class="hidden" type="password" minlength="6" placeholder="Re-enter password" />
+        <div class="form-group">
+          <label id="confirm-password-label" for="confirm-password" class="hidden">Confirm password</label>
+          <div class="input-wrap hidden" id="confirm-password-wrap">
+            <svg class="input-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="3"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <input id="confirm-password" type="password" minlength="6" placeholder="Re-enter password" />
+          </div>
+        </div>
 
         <label id="show-password-wrap" class="show-password hidden" for="show-password">
           <input id="show-password" type="checkbox" />
           Show password
         </label>
 
-        <label id="full-name-label" for="full-name" class="hidden">Full name</label>
-        <input id="full-name" class="hidden" type="text" placeholder="Your name" />
+        <div class="form-group">
+          <label id="full-name-label" for="full-name" class="hidden">Full name</label>
+          <div class="input-wrap hidden" id="full-name-wrap">
+            <svg class="input-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <input id="full-name" type="text" placeholder="Your name" />
+          </div>
+        </div>
 
-        <button id="auth-submit" type="submit" class="btn dark">Sign in</button>
+        <button id="auth-submit" type="submit" class="btn-submit">Sign in</button>
       </form>
 
       <p id="auth-error" class="error"></p>
       <p id="auth-info" class="info"></p>
+
+      <div class="divider"><span>or</span></div>
+
       <p class="switch-text"><span id="switch-label">Need an account?</span> <button id="switch-mode" class="inline-btn" type="button">Sign up</button></p>
     </section>
   </main>
 
   <div id="signup-modal" class="modal hidden" aria-hidden="true">
+    <div class="modal-overlay"></div>
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="signup-modal-title">
+      <div class="modal-icon">
+        <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="m2 7 10 6 10-6"/></svg>
+      </div>
       <h3 id="signup-modal-title">Confirm your email</h3>
       <p>
         Your account was created. Please check your email and click the confirmation link before signing in.
       </p>
-      <button id="signup-modal-close" type="button" class="btn dark">Got it</button>
+      <button id="signup-modal-close" type="button" class="btn-submit">Got it</button>
     </div>
   </div>
 

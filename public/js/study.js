@@ -1,3 +1,5 @@
+const MAX_QUIZ_GUIDANCE_LENGTH = 600;
+
 async function bootstrap() {
   const authUser = await window.requireAuthUser();
   if (!authUser) return;
@@ -14,7 +16,33 @@ async function bootstrap() {
 
   document.getElementById('module-title').textContent = module.title;
   document.getElementById('subject-name').textContent = `Subject: ${module.subjects?.name || 'General'}`;
+  setupQuizGuidanceInput(module.id);
   await loadChat(authUser.id, module.id);
+}
+
+function quizGuidanceStorageKey(moduleId) {
+  return `prelab_quiz_guidance_${moduleId}`;
+}
+
+function sanitizeQuizGuidance(value) {
+  return String(value || '').slice(0, MAX_QUIZ_GUIDANCE_LENGTH);
+}
+
+function setupQuizGuidanceInput(moduleId) {
+  const el = document.getElementById('quiz-guidance');
+  if (!el || !moduleId) return;
+
+  const key = quizGuidanceStorageKey(moduleId);
+  const savedValue = sanitizeQuizGuidance(window.localStorage.getItem(key) || '');
+  el.value = savedValue;
+
+  el.addEventListener('input', () => {
+    const normalized = sanitizeQuizGuidance(el.value);
+    if (normalized !== el.value) {
+      el.value = normalized;
+    }
+    window.localStorage.setItem(key, normalized);
+  });
 }
 
 function normalizeText(value) {
@@ -124,12 +152,13 @@ function addMessage(role, content) {
   box.scrollTop = box.scrollHeight;
 }
 
-function setStatusText(id, text = '') {
+function setStatusText(id, text = '', isLoading = false) {
   const el = document.getElementById(id);
   if (!el) return;
   const value = String(text || '').trim();
   el.textContent = value;
   el.classList.toggle('visible', Boolean(value));
+  el.classList.toggle('loading', Boolean(value) && Boolean(isLoading));
 }
 
 function setExplanationLoading(isLoading, text = '') {
@@ -144,7 +173,7 @@ function setExplanationLoading(isLoading, text = '') {
   if (isLoading) {
     button.disabled = true;
     button.textContent = 'Generating...';
-    setStatusText('explanation-status', text || 'Explanation is generating. Please wait...');
+    setStatusText('explanation-status', text || 'Explanation is generating. Please wait...', true);
     if (hint) hint.textContent = 'Explanation is generating. Please wait...';
     if (summary) summary.textContent = '';
     if (points) points.innerHTML = '';
@@ -155,24 +184,30 @@ function setExplanationLoading(isLoading, text = '') {
 
   button.disabled = false;
   button.textContent = 'Generate Explanation';
-  setStatusText('explanation-status', text || '');
+  setStatusText('explanation-status', text || '', false);
   if (card) card.classList.remove('loading');
 }
 
 function setQuizLoading(isLoading, text = '') {
   const button = document.getElementById('start-practice');
+  const questionCount = document.getElementById('question-count');
+  const guidance = document.getElementById('quiz-guidance');
   if (!button) return;
 
   if (isLoading) {
     button.disabled = true;
+    if (questionCount) questionCount.disabled = true;
+    if (guidance) guidance.disabled = true;
     button.textContent = 'Creating Quiz...';
-    setStatusText('quiz-status', text || 'Module is still creating your quiz. Please wait...');
+    setStatusText('quiz-status', text || 'Module is still creating your quiz. Please wait...', true);
     return;
   }
 
   button.disabled = false;
+  if (questionCount) questionCount.disabled = false;
+  if (guidance) guidance.disabled = false;
   button.textContent = 'Generate Practice Quiz';
-  setStatusText('quiz-status', text || '');
+  setStatusText('quiz-status', text || '', false);
 }
 
 function setChatLoading(isLoading, text = '') {
@@ -184,17 +219,19 @@ function setChatLoading(isLoading, text = '') {
     button.disabled = true;
     button.textContent = 'Sending...';
     status.textContent = text || 'Assistant is thinking...';
+    status.classList.add('loading');
     return;
   }
 
   button.disabled = false;
   button.textContent = 'Send';
   status.textContent = text || '';
+  status.classList.remove('loading');
 }
 
 document.getElementById('generate-explanation').addEventListener('click', async () => {
   const module = JSON.parse(window.localStorage.getItem('prelab_module') || '{}');
-  const topic = document.getElementById('topic-input').value.trim();
+  const topic = '';
 
   try {
     setExplanationLoading(true, 'Explanation is generating. Please wait...');
@@ -231,12 +268,14 @@ document.getElementById('start-practice').addEventListener('click', async () => 
 
   const module = JSON.parse(window.localStorage.getItem('prelab_module') || '{}');
   const selectedQuestionCount = Number(document.getElementById('question-count').value || 10);
+  const quizGuidance = sanitizeQuizGuidance(document.getElementById('quiz-guidance')?.value || '');
   try {
     setQuizLoading(true, 'Module is still creating your quiz. Please wait...');
     const data = await window.api.post('/practice/generate', {
       moduleId: module.id,
       userId: authUser.id,
-      questionCount: selectedQuestionCount
+      questionCount: selectedQuestionCount,
+      quizGuidance
     });
 
     if (data.warning) {

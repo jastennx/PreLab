@@ -4,6 +4,55 @@ const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const MAX_QUIZ_COUNT = 50;
 const QUIZ_BATCH_SIZE = 10;
 const QUIZ_MATERIAL_LIMIT = 7000;
+const QUIZ_GUIDANCE_LIMIT = 600;
+
+function deriveGuidanceHints(guidance) {
+  const raw = String(guidance || '').toLowerCase();
+  const compact = raw.replace(/[^a-z0-9]/g, '');
+  const hints = [];
+
+  if (
+    /easy|beginner|basic/.test(raw) ||
+    /easy|beginner|basic/.test(compact) ||
+    /1stgrade|firstgrade|grade1/.test(compact)
+  ) {
+    hints.push(
+      'Use very easy beginner-level questions with plain wording and straightforward distractors.'
+    );
+  }
+
+  if (/medium|intermediate/.test(raw) || /medium|intermediate/.test(compact)) {
+    hints.push('Use medium difficulty with conceptual understanding, not pure memorization.');
+  }
+
+  if (/hard|advanced|challenging|expert/.test(raw) || /hard|advanced|challenging|expert/.test(compact)) {
+    hints.push('Use advanced difficulty with deeper reasoning and less obvious distractors.');
+  }
+
+  if (/scenario|situational|case/.test(raw) || /scenario|situational|case/.test(compact)) {
+    hints.push('Prefer scenario-based or case-based question framing.');
+  }
+
+  if (/short|concise/.test(raw) || /short|concise/.test(compact)) {
+    hints.push('Keep each question and answer option concise.');
+  }
+
+  return hints;
+}
+
+function buildGuidanceBlock(quizGuidance) {
+  const guidanceSnippet = String(quizGuidance || '').trim().slice(0, QUIZ_GUIDANCE_LIMIT);
+  if (!guidanceSnippet) return '';
+
+  const hints = deriveGuidanceHints(guidanceSnippet);
+  const hintLines = hints.length ? `\nInterpreted constraints:\n- ${hints.join('\n- ')}` : '';
+
+  return (
+    'User quiz customization preferences (MANDATORY):\n' +
+    `${guidanceSnippet}${hintLines}\n` +
+    'You must apply these preferences to difficulty, style, and scope unless they conflict with factual accuracy.\n\n'
+  );
+}
 
 function wait(ms) {
   return new Promise((resolve) => {
@@ -103,9 +152,11 @@ async function generateExplanation({ moduleTitle, subjectName, materialText, top
   };
 }
 
-async function generateQuiz({ moduleTitle, subjectName, materialText, count = 10 }) {
+async function generateQuiz({ moduleTitle, subjectName, materialText, count = 10, quizGuidance = '' }) {
   const requestedCount = Math.min(MAX_QUIZ_COUNT, Math.max(1, Number(count) || 10));
   const materialSnippet = String(materialText || '').slice(0, QUIZ_MATERIAL_LIMIT);
+  const guidanceSnippet = String(quizGuidance || '').trim().slice(0, QUIZ_GUIDANCE_LIMIT);
+  const guidanceBlock = buildGuidanceBlock(guidanceSnippet);
   const totalBatches = Math.ceil(requestedCount / QUIZ_BATCH_SIZE);
   const collected = [];
   const seen = new Set();
@@ -118,15 +169,20 @@ async function generateQuiz({ moduleTitle, subjectName, materialText, count = 10
     const prompt = [
       {
         role: 'system',
-        content: 'You create multiple-choice quizzes for college students. Be accurate and clear.'
+        content:
+          'You create multiple-choice quizzes for college students. Be accurate and clear. ' +
+          'If user customization preferences are provided, treat them as strict constraints.'
       },
       {
         role: 'user',
         content:
           `Generate exactly ${batchCount} multiple-choice questions (batch ${batchIndex + 1}/${totalBatches}) for:\n` +
           `Subject: ${subjectName}\nModule: ${moduleTitle}\n` +
+          guidanceBlock +
           `Material excerpt:\n${materialSnippet}\n\n` +
-          'Keep questions concise. Avoid repeating previous questions. Return ONLY JSON with this shape:\n' +
+          'Keep questions concise. Avoid repeating previous questions. ' +
+          'Before finalizing, verify each question follows the user preferences. ' +
+          'Return ONLY JSON with this shape:\n' +
           '{\n  "questions": [\n    {\n      "question": "...",\n      "options": ["A", "B", "C", "D"],\n' +
           '      "correct_index": 0,\n      "explanation": "...",\n      "topic": "..."\n    }\n  ]\n}'
       }
@@ -174,15 +230,20 @@ async function generateQuiz({ moduleTitle, subjectName, materialText, count = 10
     const topUpPrompt = [
       {
         role: 'system',
-        content: 'You create multiple-choice quizzes for college students. Be accurate and clear.'
+        content:
+          'You create multiple-choice quizzes for college students. Be accurate and clear. ' +
+          'If user customization preferences are provided, treat them as strict constraints.'
       },
       {
         role: 'user',
         content:
           `Top-up pass ${topUpAttempt}: generate exactly ${batchCount} NEW multiple-choice questions for:\n` +
           `Subject: ${subjectName}\nModule: ${moduleTitle}\n` +
+          guidanceBlock +
           `Material excerpt:\n${materialSnippet}\n\n` +
-          'Questions must be different from typical/common prompts. Return ONLY JSON with this shape:\n' +
+          'Questions must be different from typical/common prompts. ' +
+          'Before finalizing, verify each question follows the user preferences. ' +
+          'Return ONLY JSON with this shape:\n' +
           '{\n  "questions": [\n    {\n      "question": "...",\n      "options": ["A", "B", "C", "D"],\n' +
           '      "correct_index": 0,\n      "explanation": "...",\n      "topic": "..."\n    }\n  ]\n}'
       }
@@ -228,7 +289,8 @@ async function generateQuiz({ moduleTitle, subjectName, materialText, count = 10
     questions: collected,
     requested_count: requestedCount,
     generated_count: collected.length,
-    partial
+    partial,
+    custom_guidance: guidanceSnippet
   };
 }
 

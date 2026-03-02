@@ -95,12 +95,14 @@ function setSubmitLoading(isLoading, text = '') {
     nextBtn.textContent = 'Submitting Quiz...';
     status.textContent = value || 'Quiz is being submitted. Please wait...';
     status.classList.add('visible');
+    status.classList.add('loading');
     return;
   }
 
   nextBtn.disabled = false;
   status.textContent = value;
   status.classList.toggle('visible', Boolean(value));
+  status.classList.remove('loading');
   renderQuestion();
 }
 
@@ -122,6 +124,20 @@ document.getElementById('next-btn').addEventListener('click', async () => {
       title: 'Incomplete Answers',
       icon: 'warning'
     });
+    return;
+  }
+
+  const shouldSubmit = await window.prelabDialog.confirm(
+    'Are you sure you want to submit your answers? You will not be able to change them after submitting.',
+    {
+      title: 'Submit Quiz',
+      icon: 'question',
+      confirmButtonText: 'Submit',
+      cancelButtonText: 'Review Answers'
+    }
+  );
+
+  if (!shouldSubmit) {
     return;
   }
 

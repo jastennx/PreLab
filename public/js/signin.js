@@ -147,7 +147,7 @@ function setMode(nextMode) {
     confirmPasswordInput.classList.add('hidden');
     confirmPasswordLabel.classList.add('hidden');
     if (confirmPasswordWrap) confirmPasswordWrap.classList.add('hidden');
-    showPasswordWrap.classList.add('hidden');
+    showPasswordWrap.classList.remove('hidden');
     forgotPasswordWrap.classList.remove('hidden');
     confirmPasswordInput.required = false;
     showPasswordToggle.checked = false;
@@ -293,4 +293,3 @@ authForm.addEventListener('submit', async (event) => {
     setSubmitState({ busy: false });
   }
 });
-

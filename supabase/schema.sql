@@ -6,6 +6,9 @@ create extension if not exists pgcrypto;
 
 -- Clean reset (avoids type mismatch errors from previous partial schemas)
 drop table if exists public.chat_messages cascade;
+drop table if exists public.study_plans cascade;
+drop table if exists public.flashcards cascade;
+drop table if exists public.mistake_notebook cascade;
 drop table if exists public.ai_feedback cascade;
 drop table if exists public.results cascade;
 drop table if exists public.quizzes cascade;
@@ -72,6 +75,45 @@ create table public.ai_feedback (
   created_at timestamptz not null default now()
 );
 
+create table public.mistake_notebook (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  module_id uuid not null references public.modules(id) on delete cascade,
+  result_id uuid not null references public.results(id) on delete cascade,
+  question_text text not null,
+  topic text not null default 'General',
+  selected_answer text,
+  correct_answer text not null,
+  explanation text,
+  times_missed integer not null default 1,
+  last_missed_at timestamptz not null default now(),
+  next_review_at timestamptz not null default now(),
+  resolved boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create table public.flashcards (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  module_id uuid not null references public.modules(id) on delete cascade,
+  front text not null,
+  back text not null,
+  difficulty text not null default 'medium' check (difficulty in ('easy', 'medium', 'hard')),
+  topic text not null default 'General',
+  is_hard boolean not null default false,
+  last_reviewed_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create table public.study_plans (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.users(id) on delete cascade,
+  module_id uuid not null references public.modules(id) on delete cascade,
+  deadline date not null,
+  plan_json jsonb not null,
+  created_at timestamptz not null default now()
+);
+
 create table public.chat_messages (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.users(id) on delete cascade,
@@ -85,6 +127,9 @@ create index idx_modules_user_id on public.modules(user_id);
 create index idx_quizzes_module_id on public.quizzes(module_id);
 create index idx_results_user_id on public.results(user_id);
 create index idx_chat_user_module on public.chat_messages(user_id, module_id);
+create index idx_mistake_user_module_due on public.mistake_notebook(user_id, module_id, next_review_at);
+create index idx_flashcards_user_module on public.flashcards(user_id, module_id);
+create index idx_study_plans_user_module on public.study_plans(user_id, module_id);
 
 create or replace function public.handle_new_user()
 returns trigger
@@ -111,6 +156,9 @@ alter table public.modules enable row level security;
 alter table public.quizzes enable row level security;
 alter table public.results enable row level security;
 alter table public.ai_feedback enable row level security;
+alter table public.mistake_notebook enable row level security;
+alter table public.flashcards enable row level security;
+alter table public.study_plans enable row level security;
 alter table public.chat_messages enable row level security;
 
 drop policy if exists "users_select_own" on public.users;
@@ -139,6 +187,18 @@ for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 drop policy if exists "aifeedback_owner_all" on public.ai_feedback;
 create policy "aifeedback_owner_all" on public.ai_feedback
+for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "mistake_notebook_owner_all" on public.mistake_notebook;
+create policy "mistake_notebook_owner_all" on public.mistake_notebook
+for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "flashcards_owner_all" on public.flashcards;
+create policy "flashcards_owner_all" on public.flashcards
+for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "study_plans_owner_all" on public.study_plans;
+create policy "study_plans_owner_all" on public.study_plans
 for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 drop policy if exists "chat_owner_all" on public.chat_messages;

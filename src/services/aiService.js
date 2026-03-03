@@ -298,6 +298,77 @@ async function generateQuiz({ moduleTitle, subjectName, materialText, count = 10
   };
 }
 
+async function generateTargetedReviewQuiz({
+  moduleTitle,
+  subjectName,
+  materialText,
+  count = 10,
+  weakAreas = [],
+  mistakeNotes = []
+}) {
+  const safeCount = Math.min(30, Math.max(5, Number(count) || 10));
+  const materialSnippet = String(materialText || '').slice(0, QUIZ_MATERIAL_LIMIT);
+  const weakAreaText = Array.isArray(weakAreas) ? weakAreas.filter(Boolean).join(', ') : '';
+  const mistakeSnippet = JSON.stringify(
+    (Array.isArray(mistakeNotes) ? mistakeNotes : []).slice(0, 10),
+    null,
+    2
+  ).slice(0, 2500);
+
+  const prompt = [
+    {
+      role: 'system',
+      content:
+        'You create spaced repetition review quizzes. Focus on previously weak topics and mistakes.'
+    },
+    {
+      role: 'user',
+      content:
+        `Create exactly ${safeCount} spaced-repetition questions.\n` +
+        `Subject: ${subjectName}\nModule: ${moduleTitle}\n` +
+        `Weak areas to prioritize: ${weakAreaText || 'General'}\n` +
+        `Recent mistake notes (JSON):\n${mistakeSnippet}\n` +
+        `Material excerpt:\n${materialSnippet}\n\n` +
+        'Rules:\n' +
+        '- Prioritize weak areas and frequent mistake patterns.\n' +
+        '- Use concise but concept-checking wording.\n' +
+        '- Include varied question framing.\n\n' +
+        'Return ONLY JSON with this shape:\n' +
+        '{\n  "questions": [\n    {\n      "question": "...",\n      "options": ["A", "B", "C", "D"],\n' +
+        '      "correct_index": 0,\n      "explanation": "...",\n      "topic": "..."\n    }\n  ]\n}'
+    }
+  ];
+
+  const raw = await askAI(prompt, 0.35, {
+    maxTokens: 2800,
+    responseFormat: { type: 'json_object' }
+  });
+  const parsed = safeJsonParse(raw, { questions: [] });
+  const questions = Array.isArray(parsed.questions) ? parsed.questions : [];
+  const normalized = questions
+    .filter((q) => q && q.question && Array.isArray(q.options) && q.options.length >= 2)
+    .slice(0, safeCount)
+    .map((q) => ({
+      question: String(q.question).trim(),
+      options: q.options.slice(0, 4).map((o) => String(o)),
+      correct_index: Number.isInteger(q.correct_index) ? q.correct_index : 0,
+      explanation: q.explanation ? String(q.explanation) : '',
+      topic: q.topic ? String(q.topic) : 'General'
+    }));
+
+  if (!normalized.length) {
+    throw new Error('Could not generate review quiz right now. Please try again shortly.');
+  }
+
+  return {
+    questions: normalized,
+    requested_count: safeCount,
+    generated_count: normalized.length,
+    partial: normalized.length < safeCount,
+    quiz_mode: 'review'
+  };
+}
+
 function evaluateQuiz({ questions, userAnswers }) {
   const review = questions.map((q, index) => {
     const selected = Number(userAnswers[index]);
@@ -379,10 +450,117 @@ async function chatTutor({ moduleTitle, subjectName, materialText, history, mess
   return askAI(messages, 0.5, { maxTokens: 1200 });
 }
 
+async function generateFlashcards({ moduleTitle, subjectName, materialText, count = 20 }) {
+  const safeCount = Math.min(50, Math.max(8, Number(count) || 20));
+  const prompt = [
+    {
+      role: 'system',
+      content:
+        'You are an academic assistant that creates concise Q/A flashcards with clear concept coverage.'
+    },
+    {
+      role: 'user',
+      content:
+        `Create exactly ${safeCount} flashcards for this material.\n` +
+        `Subject: ${subjectName}\nModule: ${moduleTitle}\n` +
+        `Material:\n${String(materialText || '').slice(0, 9000)}\n\n` +
+        'Return ONLY JSON with this shape:\n' +
+        '{\n  "flashcards": [\n    {\n      "front": "Question prompt",\n      "back": "Concise answer",\n      "difficulty": "easy|medium|hard",\n      "topic": "Concept name"\n    }\n  ]\n}'
+    }
+  ];
+
+  const raw = await askAI(prompt, 0.3, {
+    maxTokens: 3000,
+    responseFormat: { type: 'json_object' }
+  });
+  const parsed = safeJsonParse(raw, { flashcards: [] });
+  const flashcards = Array.isArray(parsed.flashcards) ? parsed.flashcards : [];
+
+  return flashcards
+    .filter((c) => c && c.front && c.back)
+    .slice(0, safeCount)
+    .map((c) => ({
+      front: String(c.front).trim(),
+      back: String(c.back).trim(),
+      difficulty: ['easy', 'medium', 'hard'].includes(String(c.difficulty || '').toLowerCase())
+        ? String(c.difficulty).toLowerCase()
+        : 'medium',
+      topic: c.topic ? String(c.topic).trim() : 'General'
+    }));
+}
+
+async function generateStudyPlan({
+  moduleTitle,
+  subjectName,
+  materialText,
+  studyGoal,
+  deadlineISO,
+  weakAreas = []
+}) {
+  const weakAreasText = Array.isArray(weakAreas) ? weakAreas.filter(Boolean).join(', ') : '';
+  const prompt = [
+    {
+      role: 'system',
+      content:
+        'You build actionable daily study plans. Keep tasks specific, realistic, and measurable.'
+    },
+    {
+      role: 'user',
+      content:
+        `Create a day-by-day study plan.\n` +
+        `Subject: ${subjectName}\nModule: ${moduleTitle}\n` +
+        `Goal: ${studyGoal || 'Understand and retain module content'}\n` +
+        `Deadline (ISO): ${deadlineISO}\n` +
+        `Known weak areas: ${weakAreasText || 'None'}\n` +
+        `Material excerpt:\n${String(materialText || '').slice(0, 7000)}\n\n` +
+        'Return ONLY JSON:\n' +
+        '{\n' +
+        '  "overview": "1 short paragraph",\n' +
+        '  "daily_plan": [\n' +
+        '    {\n' +
+        '      "day": "Day 1",\n' +
+        '      "focus": "Topic focus",\n' +
+        '      "tasks": ["task 1", "task 2"],\n' +
+        '      "estimated_minutes": 60\n' +
+        '    }\n' +
+        '  ],\n' +
+        '  "milestones": ["milestone 1", "milestone 2"]\n' +
+        '}'
+    }
+  ];
+
+  const raw = await askAI(prompt, 0.35, {
+    maxTokens: 2400,
+    responseFormat: { type: 'json_object' }
+  });
+  const parsed = safeJsonParse(raw, {});
+  const dailyPlan = Array.isArray(parsed.daily_plan) ? parsed.daily_plan : [];
+
+  return {
+    overview: String(parsed.overview || '').trim(),
+    daily_plan: dailyPlan
+      .filter((d) => d && d.day && d.focus)
+      .map((d) => ({
+        day: String(d.day).trim(),
+        focus: String(d.focus).trim(),
+        tasks: Array.isArray(d.tasks) ? d.tasks.map((t) => String(t).trim()).filter(Boolean) : [],
+        estimated_minutes: Number.isFinite(Number(d.estimated_minutes))
+          ? Math.max(15, Math.min(240, Number(d.estimated_minutes)))
+          : 60
+      })),
+    milestones: Array.isArray(parsed.milestones)
+      ? parsed.milestones.map((m) => String(m).trim()).filter(Boolean)
+      : []
+  };
+}
+
 module.exports = {
   generateExplanation,
   generateQuiz,
+  generateTargetedReviewQuiz,
   evaluateQuiz,
   generateFeedback,
-  chatTutor
+  chatTutor,
+  generateFlashcards,
+  generateStudyPlan
 };

@@ -16,12 +16,24 @@ async function bootstrap() {
 
   document.getElementById('module-title').textContent = module.title;
   document.getElementById('subject-name').textContent = `Subject: ${module.subjects?.name || 'General'}`;
+
   setupQuizGuidanceInput(module.id);
-  await loadChat(authUser.id, module.id);
+  setupQuizModeControls(module.id);
+  setupPlanDeadlineDefault();
+
+  await Promise.all([
+    loadChat(authUser.id, module.id),
+    loadFlashcards(authUser.id, module.id),
+    loadStudyPlan(authUser.id, module.id)
+  ]);
 }
 
 function quizGuidanceStorageKey(moduleId) {
   return `prelab_quiz_guidance_${moduleId}`;
+}
+
+function quizModeStorageKey(moduleId) {
+  return `prelab_quiz_mode_${moduleId}`;
 }
 
 function sanitizeQuizGuidance(value) {
@@ -43,6 +55,36 @@ function setupQuizGuidanceInput(moduleId) {
     }
     window.localStorage.setItem(key, normalized);
   });
+}
+
+function setupQuizModeControls(moduleId) {
+  const modeEl = document.getElementById('quiz-mode');
+  const minutesEl = document.getElementById('mock-exam-minutes');
+  if (!modeEl || !minutesEl) return;
+
+  const key = quizModeStorageKey(moduleId);
+  const savedMode = window.localStorage.getItem(key) || 'practice';
+  modeEl.value = savedMode === 'mock_exam' ? 'mock_exam' : 'practice';
+
+  const sync = () => {
+    const isMock = modeEl.value === 'mock_exam';
+    minutesEl.disabled = !isMock;
+    minutesEl.style.opacity = isMock ? '1' : '0.65';
+    window.localStorage.setItem(key, modeEl.value);
+  };
+
+  modeEl.addEventListener('change', sync);
+  sync();
+}
+
+function setupPlanDeadlineDefault() {
+  const el = document.getElementById('plan-deadline');
+  if (!el || el.value) return;
+
+  const nextWeek = new Date();
+  nextWeek.setDate(nextWeek.getDate() + 7);
+  const iso = nextWeek.toISOString().slice(0, 10);
+  el.value = iso;
 }
 
 function normalizeText(value) {
@@ -129,6 +171,96 @@ function extractExplanationFromBrokenJson(raw) {
   };
 }
 
+function renderFlashcards(cards) {
+  const list = document.getElementById('flashcard-list');
+  if (!list) return;
+
+  list.innerHTML = '';
+  if (!cards.length) {
+    list.innerHTML = '<p>No flashcards yet.</p>';
+    return;
+  }
+
+  cards.forEach((card) => {
+    const div = document.createElement('article');
+    div.className = 'flashcard-item';
+    div.innerHTML = `
+      <h4>${card.topic || 'General'} (${card.difficulty || 'medium'})</h4>
+      <p><strong>Q:</strong> ${card.front}</p>
+      <p><strong>A:</strong> ${card.back}</p>
+      <div class="flashcard-toolbar">
+        <span>${card.is_hard ? 'Marked Hard' : 'Normal'}</span>
+        <button data-id="${card.id}" data-hard="${card.is_hard ? '0' : '1'}">
+          ${card.is_hard ? 'Unmark Hard' : 'Mark Hard'}
+        </button>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+
+  list.querySelectorAll('button[data-id]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const authUser = await window.requireAuthUser();
+      if (!authUser) return;
+      const cardId = btn.dataset.id;
+      const shouldHard = btn.dataset.hard === '1';
+      try {
+        await window.api.post(`/flashcards/${cardId}/hard`, {
+          userId: authUser.id,
+          isHard: shouldHard
+        });
+        const module = JSON.parse(window.localStorage.getItem('prelab_module') || '{}');
+        await loadFlashcards(authUser.id, module.id);
+      } catch (error) {
+        await window.prelabDialog.alert(error.message, { title: 'Flashcard Update Failed', icon: 'error' });
+      }
+    });
+  });
+}
+
+function renderStudyPlan(planRecord) {
+  const list = document.getElementById('study-plan-list');
+  if (!list) return;
+
+  list.innerHTML = '';
+  if (!planRecord?.plan_json) {
+    list.innerHTML = '<p>No study plan yet.</p>';
+    return;
+  }
+
+  const plan = planRecord.plan_json;
+  const overview = document.createElement('p');
+  overview.textContent = plan.overview || 'Generated study plan.';
+  list.appendChild(overview);
+
+  (plan.daily_plan || []).forEach((day) => {
+    const div = document.createElement('article');
+    div.className = 'plan-day';
+    div.innerHTML = `<h4>${day.day}: ${day.focus}</h4><p>${(day.tasks || []).join(' | ')}</p>`;
+    list.appendChild(div);
+  });
+}
+
+async function loadFlashcards(userId, moduleId) {
+  const status = document.getElementById('flashcard-status');
+  if (!status) return;
+  try {
+    const data = await window.api.get(`/flashcards?userId=${encodeURIComponent(userId)}&moduleId=${encodeURIComponent(moduleId)}`);
+    renderFlashcards(data.flashcards || []);
+  } catch (_error) {
+    renderFlashcards([]);
+  }
+}
+
+async function loadStudyPlan(userId, moduleId) {
+  try {
+    const data = await window.api.get(`/study-plan?userId=${encodeURIComponent(userId)}&moduleId=${encodeURIComponent(moduleId)}`);
+    renderStudyPlan(data.plan || null);
+  } catch (_error) {
+    renderStudyPlan(null);
+  }
+}
+
 async function loadChat(userId, moduleId) {
   const box = document.getElementById('chat-messages');
   box.innerHTML = '';
@@ -190,22 +322,31 @@ function setExplanationLoading(isLoading, text = '') {
 
 function setQuizLoading(isLoading, text = '') {
   const button = document.getElementById('start-practice');
+  const reviewButton = document.getElementById('start-daily-review');
   const questionCount = document.getElementById('question-count');
   const guidance = document.getElementById('quiz-guidance');
+  const quizMode = document.getElementById('quiz-mode');
+  const mockMinutes = document.getElementById('mock-exam-minutes');
   if (!button) return;
 
   if (isLoading) {
     button.disabled = true;
+    if (reviewButton) reviewButton.disabled = true;
     if (questionCount) questionCount.disabled = true;
     if (guidance) guidance.disabled = true;
+    if (quizMode) quizMode.disabled = true;
+    if (mockMinutes) mockMinutes.disabled = true;
     button.textContent = 'Creating Quiz...';
     setStatusText('quiz-status', text || 'Module is still creating your quiz. Please wait...', true);
     return;
   }
 
   button.disabled = false;
+  if (reviewButton) reviewButton.disabled = false;
   if (questionCount) questionCount.disabled = false;
   if (guidance) guidance.disabled = false;
+  if (quizMode) quizMode.disabled = false;
+  if (mockMinutes && quizMode?.value === 'mock_exam') mockMinutes.disabled = false;
   button.textContent = 'Generate Practice Quiz';
   setStatusText('quiz-status', text || '', false);
 }
@@ -269,13 +410,17 @@ document.getElementById('start-practice').addEventListener('click', async () => 
   const module = JSON.parse(window.localStorage.getItem('prelab_module') || '{}');
   const selectedQuestionCount = Number(document.getElementById('question-count').value || 10);
   const quizGuidance = sanitizeQuizGuidance(document.getElementById('quiz-guidance')?.value || '');
+  const quizMode = document.getElementById('quiz-mode')?.value || 'practice';
+  const mockExamMinutes = Number(document.getElementById('mock-exam-minutes')?.value || 30);
   try {
     setQuizLoading(true, 'Module is still creating your quiz. Please wait...');
     const data = await window.api.post('/practice/generate', {
       moduleId: module.id,
       userId: authUser.id,
       questionCount: selectedQuestionCount,
-      quizGuidance
+      quizGuidance,
+      quizMode,
+      mockExamMinutes
     });
 
     if (data.warning) {
@@ -305,6 +450,76 @@ document.getElementById('start-practice').addEventListener('click', async () => 
       return;
     }
     await window.prelabDialog.alert(message, { title: 'Request Failed', icon: 'error' });
+  }
+});
+
+document.getElementById('start-daily-review').addEventListener('click', async () => {
+  const authUser = await window.requireAuthUser();
+  if (!authUser) return;
+
+  const module = JSON.parse(window.localStorage.getItem('prelab_module') || '{}');
+  const selectedQuestionCount = Number(document.getElementById('question-count').value || 10);
+
+  try {
+    setQuizLoading(true, 'Preparing your daily review...');
+    const data = await window.api.post('/review/daily', {
+      moduleId: module.id,
+      userId: authUser.id,
+      questionCount: selectedQuestionCount
+    });
+
+    window.localStorage.setItem('prelab_quiz', JSON.stringify(data));
+    setQuizLoading(false, '');
+    window.location.href = '/pages/practice';
+  } catch (error) {
+    setQuizLoading(false, '');
+    await window.prelabDialog.alert(error.message, { title: 'Daily Review Failed', icon: 'error' });
+  }
+});
+
+document.getElementById('generate-plan').addEventListener('click', async () => {
+  const authUser = await window.requireAuthUser();
+  if (!authUser) return;
+
+  const module = JSON.parse(window.localStorage.getItem('prelab_module') || '{}');
+  const deadline = document.getElementById('plan-deadline')?.value;
+  if (!deadline) {
+    await window.prelabDialog.alert('Please choose a deadline date first.', { title: 'Deadline Required', icon: 'warning' });
+    return;
+  }
+
+  try {
+    setStatusText('plan-status', 'Generating study plan...', true);
+    await window.api.post('/study-plan/generate', {
+      moduleId: module.id,
+      userId: authUser.id,
+      deadline
+    });
+    await loadStudyPlan(authUser.id, module.id);
+    setStatusText('plan-status', 'Study plan ready.', false);
+  } catch (error) {
+    setStatusText('plan-status', '', false);
+    await window.prelabDialog.alert(error.message, { title: 'Plan Generation Failed', icon: 'error' });
+  }
+});
+
+document.getElementById('generate-flashcards').addEventListener('click', async () => {
+  const authUser = await window.requireAuthUser();
+  if (!authUser) return;
+
+  const module = JSON.parse(window.localStorage.getItem('prelab_module') || '{}');
+  try {
+    setStatusText('flashcard-status', 'Generating flashcards...', true);
+    await window.api.post('/flashcards/generate', {
+      moduleId: module.id,
+      userId: authUser.id,
+      count: 20
+    });
+    await loadFlashcards(authUser.id, module.id);
+    setStatusText('flashcard-status', 'Flashcards ready.', false);
+  } catch (error) {
+    setStatusText('flashcard-status', '', false);
+    await window.prelabDialog.alert(error.message, { title: 'Flashcard Generation Failed', icon: 'error' });
   }
 });
 
@@ -354,4 +569,3 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
 });
 
 bootstrap();
-

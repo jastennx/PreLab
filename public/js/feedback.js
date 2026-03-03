@@ -1,3 +1,5 @@
+let currentResult = null;
+
 async function bootstrap() {
   const authUser = await window.requireAuthUser();
   if (!authUser) return;
@@ -12,7 +14,9 @@ async function bootstrap() {
     return;
   }
 
+  currentResult = result;
   renderResult(result);
+  await loadMistakeNotebook(authUser.id, result.module_id);
 }
 
 function renderResult(result) {
@@ -63,9 +67,56 @@ function renderResult(result) {
   });
 }
 
+async function loadMistakeNotebook(userId, moduleId) {
+  const list = document.getElementById('mistake-list');
+  list.innerHTML = '';
+
+  try {
+    const data = await window.api.get(`/mistakes?userId=${encodeURIComponent(userId)}&moduleId=${encodeURIComponent(moduleId)}`);
+    const mistakes = (data.mistakes || []).slice(0, 12);
+
+    if (!mistakes.length) {
+      list.innerHTML = '<p>No open mistakes right now. Great work.</p>';
+      return;
+    }
+
+    mistakes.forEach((item) => {
+      const div = document.createElement('article');
+      div.className = 'mistake-item';
+      div.innerHTML = `
+        <strong>${item.topic || 'General'} | Missed ${item.times_missed} time(s)</strong>
+        <p>${item.question_text}</p>
+      `;
+      list.appendChild(div);
+    });
+  } catch (error) {
+    list.innerHTML = `<p>${error.message}</p>`;
+  }
+}
+
+document.getElementById('start-review-btn').addEventListener('click', async () => {
+  const authUser = await window.requireAuthUser();
+  if (!authUser) return;
+  if (!currentResult?.module_id) {
+    await window.prelabDialog.alert('Module context missing for review quiz.', { title: 'Action Failed', icon: 'error' });
+    return;
+  }
+
+  try {
+    const data = await window.api.post('/review/daily', {
+      userId: authUser.id,
+      moduleId: currentResult.module_id,
+      questionCount: 10
+    });
+    window.localStorage.setItem('prelab_quiz', JSON.stringify(data));
+    window.location.href = '/pages/practice';
+  } catch (error) {
+    await window.prelabDialog.alert(error.message, { title: 'Daily Review Failed', icon: 'error' });
+  }
+});
+
 document.getElementById('logout-btn').addEventListener('click', async () => {
   await window.confirmAndSignOut();
 });
 
 bootstrap();
-

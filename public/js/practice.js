@@ -2,6 +2,9 @@ let currentIndex = 0;
 let answers = [];
 let quizData = null;
 let isSubmitting = false;
+let timerInterval = null;
+let remainingSeconds = null;
+let startedAtMs = Date.now();
 
 async function bootstrap() {
   const authUser = await window.requireAuthUser();
@@ -21,12 +24,60 @@ async function bootstrap() {
 
   quizData = quizWrapper;
   answers = new Array(quizData.quiz.questions.length).fill(null);
+  startedAtMs = Date.now();
 
   document.getElementById('module-title').textContent = module.title;
   document.getElementById('total-number').textContent = String(quizData.quiz.questions.length);
 
+  setupModeBanner();
   renderPager();
   renderQuestion();
+}
+
+function setupModeBanner() {
+  const modeEl = document.getElementById('quiz-mode-label');
+  const timerEl = document.getElementById('timer-label');
+  if (!modeEl || !timerEl) return;
+
+  const mode = String(quizData?.quiz?.quiz_mode || 'practice');
+  if (mode === 'review') {
+    modeEl.textContent = 'Mode: Daily Review (Spaced Repetition)';
+  } else if (mode === 'mock_exam') {
+    modeEl.textContent = 'Mode: Timed Mock Exam';
+  } else {
+    modeEl.textContent = 'Mode: Practice';
+  }
+
+  const minutes = Number(quizData?.quiz?.mock_exam_minutes || 0);
+  if (mode === 'mock_exam' && Number.isFinite(minutes) && minutes > 0) {
+    remainingSeconds = minutes * 60;
+    renderTimer();
+    timerInterval = window.setInterval(async () => {
+      if (isSubmitting) return;
+      remainingSeconds -= 1;
+      renderTimer();
+      if (remainingSeconds <= 0) {
+        window.clearInterval(timerInterval);
+        timerInterval = null;
+        await submitQuiz(true);
+      }
+    }, 1000);
+  } else {
+    timerEl.textContent = '';
+  }
+}
+
+function formatTime(totalSeconds) {
+  const safe = Math.max(0, Number(totalSeconds) || 0);
+  const mins = Math.floor(safe / 60);
+  const secs = safe % 60;
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+function renderTimer() {
+  const timerEl = document.getElementById('timer-label');
+  if (!timerEl) return;
+  timerEl.textContent = `Time Remaining: ${formatTime(remainingSeconds)}`;
 }
 
 function renderPager() {
@@ -106,6 +157,66 @@ function setSubmitLoading(isLoading, text = '') {
   renderQuestion();
 }
 
+async function submitQuiz(isForcedByTimer = false) {
+  if (isSubmitting) return;
+
+  const total = quizData.quiz.questions.length;
+  if (!isForcedByTimer) {
+    const hasBlank = answers.some((item) => item === null);
+    if (hasBlank) {
+      await window.prelabDialog.alert('Please answer all questions before submitting.', {
+        title: 'Incomplete Answers',
+        icon: 'warning'
+      });
+      return;
+    }
+
+    const shouldSubmit = await window.prelabDialog.confirm(
+      'Are you sure you want to submit your answers? You will not be able to change them after submitting.',
+      {
+        title: 'Submit Quiz',
+        icon: 'question',
+        confirmButtonText: 'Submit',
+        cancelButtonText: 'Review Answers'
+      }
+    );
+
+    if (!shouldSubmit) return;
+  } else {
+    for (let i = 0; i < total; i += 1) {
+      if (answers[i] === null) answers[i] = -1;
+    }
+  }
+
+  const authUser = await window.requireAuthUser();
+  if (!authUser) return;
+  const module = JSON.parse(window.localStorage.getItem('prelab_module') || '{}');
+
+  try {
+    if (timerInterval) {
+      window.clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    const elapsedSeconds = Math.max(0, Math.round((Date.now() - startedAtMs) / 1000));
+    setSubmitLoading(true, 'Quiz is being submitted. Please wait...');
+    const data = await window.api.post('/practice/submit', {
+      quizId: quizData.quizId,
+      moduleId: module.id,
+      userId: authUser.id,
+      answers,
+      elapsedSeconds
+    });
+
+    window.localStorage.setItem('prelab_result', JSON.stringify(data.result));
+    setSubmitLoading(false, '');
+    window.location.href = '/pages/feedback';
+  } catch (error) {
+    setSubmitLoading(false, '');
+    await window.prelabDialog.alert(error.message, { title: 'Submit Failed', icon: 'error' });
+  }
+}
+
 document.getElementById('next-btn').addEventListener('click', async () => {
   if (isSubmitting) return;
 
@@ -118,49 +229,7 @@ document.getElementById('next-btn').addEventListener('click', async () => {
     return;
   }
 
-  const hasBlank = answers.some((item) => item === null);
-  if (hasBlank) {
-    await window.prelabDialog.alert('Please answer all questions before submitting.', {
-      title: 'Incomplete Answers',
-      icon: 'warning'
-    });
-    return;
-  }
-
-  const shouldSubmit = await window.prelabDialog.confirm(
-    'Are you sure you want to submit your answers? You will not be able to change them after submitting.',
-    {
-      title: 'Submit Quiz',
-      icon: 'question',
-      confirmButtonText: 'Submit',
-      cancelButtonText: 'Review Answers'
-    }
-  );
-
-  if (!shouldSubmit) {
-    return;
-  }
-
-  const authUser = await window.requireAuthUser();
-  if (!authUser) return;
-  const module = JSON.parse(window.localStorage.getItem('prelab_module') || '{}');
-
-  try {
-    setSubmitLoading(true, 'Quiz is being submitted. Please wait...');
-    const data = await window.api.post('/practice/submit', {
-      quizId: quizData.quizId,
-      moduleId: module.id,
-      userId: authUser.id,
-      answers
-    });
-
-    window.localStorage.setItem('prelab_result', JSON.stringify(data.result));
-    setSubmitLoading(false, '');
-    window.location.href = '/pages/feedback';
-  } catch (error) {
-    setSubmitLoading(false, '');
-    await window.prelabDialog.alert(error.message, { title: 'Submit Failed', icon: 'error' });
-  }
+  await submitQuiz(false);
 });
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
@@ -168,4 +237,3 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
 });
 
 bootstrap();
-

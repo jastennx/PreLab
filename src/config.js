@@ -18,7 +18,7 @@ const config = {
   supabaseAnonKey: required('SUPABASE_ANON_KEY'),
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || '',
   studyMaterialsBucket: process.env.STUDY_MATERIALS_BUCKET || 'study-materials',
-  groqApiKey: process.env.GROQ_API_KEY || process.env.AI_API_KEY || '',
+  groqApiKey: process.env.GROQ_API_KEY || '',
   groqModel: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
   appBaseUrl: process.env.APP_BASE_URL || 'http://localhost:3000',
   rootDir: path.resolve(__dirname, '..')

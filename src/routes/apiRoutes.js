@@ -115,6 +115,16 @@ router.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'PreLab API' });
 });
 
+router.get('/debug-env', (_req, res) => {
+  const key = process.env.GROQ_API_KEY || '';
+  res.json({
+    hasGroqKey: !!key,
+    keyPrefix: key.substring(0, 8),
+    keyLength: key.length,
+    model: process.env.GROQ_MODEL || 'not set'
+  });
+});
+
 router.get('/public-config', (_req, res) => {
   res.json({
     supabaseUrl: process.env.SUPABASE_URL || '',

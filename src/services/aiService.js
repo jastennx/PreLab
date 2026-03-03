@@ -6,6 +6,18 @@ const QUIZ_BATCH_SIZE = 25;
 const QUIZ_MATERIAL_LIMIT = 7000;
 const QUIZ_GUIDANCE_LIMIT = 600;
 
+function assertGroqConfig() {
+  if (!config.groqApiKey) {
+    throw new Error('GROQ_API_KEY is missing. Set it in your runtime environment and redeploy.');
+  }
+  if (!config.groqApiKey.startsWith('gsk_')) {
+    throw new Error('GROQ_API_KEY format looks invalid. It should start with "gsk_".');
+  }
+  if (!config.groqModel) {
+    throw new Error('GROQ_MODEL is missing. Set it in your runtime environment and redeploy.');
+  }
+}
+
 function deriveGuidanceHints(guidance) {
   const raw = String(guidance || '').toLowerCase();
   const compact = raw.replace(/[^a-z0-9]/g, '');
@@ -77,6 +89,7 @@ function safeJsonParse(text, fallback = null) {
 }
 
 async function askAI(messages, temperature = 0.4, options = {}) {
+  assertGroqConfig();
   const maxRetries = Number.isInteger(options.maxRetries) ? options.maxRetries : 2;
 
   for (let attempt = 0; attempt <= maxRetries; attempt += 1) {

@@ -116,15 +116,25 @@ router.get('/health', (_req, res) => {
 });
 
 router.get('/debug-env', (_req, res) => {
-  const key = process.env.GROQ_API_KEY || '';
+  const rawKey = process.env.GROQ_API_KEY || '';
+  const key = config.groqApiKey || '';
+  const keySource = process.env.GROQ_API_KEY
+    ? 'GROQ_API_KEY'
+    : process.env.AI_API_KEY
+      ? 'AI_API_KEY'
+      : process.env.OPENAI_API_KEY
+        ? 'OPENAI_API_KEY'
+        : 'none';
   const allKeys = Object.keys(process.env).filter(k => 
     k.includes('GROQ') || k.includes('SUPABASE') || k.includes('AI_') || k.includes('OPENROUTER')
   );
   res.json({
     hasGroqKey: !!key,
+    keySource,
     keyPrefix: key.substring(0, 8),
     keyLength: key.length,
-    model: process.env.GROQ_MODEL || 'not set',
+    rawKeyLength: rawKey.length,
+    model: config.groqModel || 'not set',
     envKeysFound: allKeys,
     isVercel: process.env.VERCEL || 'not set'
   });

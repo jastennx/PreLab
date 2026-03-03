@@ -1,26 +1,44 @@
-﻿const path = require('path');
+const path = require('path');
+
+function normalizeEnv(value) {
+  if (value === undefined || value === null) return '';
+  const trimmed = String(value).trim();
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed;
+}
+
+function env(name, fallback = '') {
+  const value = normalizeEnv(process.env[name]);
+  if (value) return value;
+  return normalizeEnv(fallback);
+}
 
 function required(name, fallback = '') {
-  const value = process.env[name] || fallback;
+  const value = env(name, fallback);
   if (!value) {
     throw new Error(`Missing required environment variable: ${name}`);
   }
   return value;
 }
 
-const isVercel = process.env.VERCEL === '1';
+const isVercel = env('VERCEL') === '1';
 
 const config = {
-  port: Number(process.env.PORT || 3000),
+  port: Number(env('PORT', 3000)),
   isVercel,
-  frontendUrl: process.env.FRONTEND_URL || '*',
+  frontendUrl: env('FRONTEND_URL', '*'),
   supabaseUrl: required('SUPABASE_URL'),
   supabaseAnonKey: required('SUPABASE_ANON_KEY'),
-  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || '',
-  studyMaterialsBucket: process.env.STUDY_MATERIALS_BUCKET || 'study-materials',
-  groqApiKey: process.env.GROQ_API_KEY || '',
-  groqModel: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
-  appBaseUrl: process.env.APP_BASE_URL || 'http://localhost:3000',
+  supabaseServiceRoleKey: env('SUPABASE_SERVICE_ROLE_KEY') || env('SUPABASE_SERVICE_KEY'),
+  studyMaterialsBucket: env('STUDY_MATERIALS_BUCKET', 'study-materials'),
+  groqApiKey: env('GROQ_API_KEY') || env('AI_API_KEY') || env('OPENAI_API_KEY'),
+  groqModel: env('GROQ_MODEL') || env('AI_MODEL') || 'llama-3.3-70b-versatile',
+  appBaseUrl: env('APP_BASE_URL', 'http://localhost:3000'),
   rootDir: path.resolve(__dirname, '..')
 };
 

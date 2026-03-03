@@ -1,8 +1,8 @@
 const config = require('../config');
 
-const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const MAX_QUIZ_COUNT = 50;
-const QUIZ_BATCH_SIZE = 10;
+const QUIZ_BATCH_SIZE = 25;
 const QUIZ_MATERIAL_LIMIT = 7000;
 const QUIZ_GUIDANCE_LIMIT = 600;
 
@@ -76,20 +76,18 @@ function safeJsonParse(text, fallback = null) {
   }
 }
 
-async function askOpenRouter(messages, temperature = 0.4, options = {}) {
+async function askAI(messages, temperature = 0.4, options = {}) {
   const maxRetries = Number.isInteger(options.maxRetries) ? options.maxRetries : 2;
 
   for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
-    const response = await fetch(OPENROUTER_URL, {
+    const response = await fetch(GROQ_URL, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${config.openRouterApiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': config.appBaseUrl,
-        'X-Title': 'PreLab'
+        Authorization: `Bearer ${config.groqApiKey}`,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: config.openRouterModel,
+        model: config.groqModel,
         messages,
         temperature,
         max_tokens: options.maxTokens || 2048,
@@ -106,22 +104,28 @@ async function askOpenRouter(messages, temperature = 0.4, options = {}) {
 
     const message = String(parsed?.error?.message || raw || '').toLowerCase();
     if (
-      response.status === 402 ||
-      message.includes('insufficient credits') ||
-      message.includes('payment required')
+      response.status === 429 ||
+      message.includes('rate limit') ||
+      message.includes('quota')
     ) {
-      throw new Error('OpenRouter credits exhausted. Use a free model or another free API key.');
+      if (attempt < maxRetries) {
+        const backoff = 5000 * (attempt + 1);
+        console.log(`[AI] Rate limited, waiting ${backoff / 1000}s before retry ${attempt + 1}...`);
+        await wait(backoff);
+        continue;
+      }
+      throw new Error('AI rate limit reached. Please wait a moment and try again.');
     }
 
-    if ((response.status === 429 || response.status === 503) && attempt < maxRetries) {
-      await wait(1500 * (attempt + 1));
+    if ((response.status === 503) && attempt < maxRetries) {
+      await wait(3000 * (attempt + 1));
       continue;
     }
 
-    throw new Error(`OpenRouter request failed (${response.status}): ${raw}`);
+    throw new Error(`AI request failed (${response.status}): ${raw}`);
   }
 
-  throw new Error('OpenRouter request failed after retries.');
+  throw new Error('AI request failed after retries.');
 }
 
 async function generateExplanation({ moduleTitle, subjectName, materialText, topic }) {
@@ -136,7 +140,7 @@ async function generateExplanation({ moduleTitle, subjectName, materialText, top
     }
   ];
 
-  const raw = await askOpenRouter(prompt, 0.3, {
+  const raw = await askAI(prompt, 0.3, {
     maxTokens: 1800,
     responseFormat: { type: 'json_object' }
   });
@@ -188,9 +192,9 @@ async function generateQuiz({ moduleTitle, subjectName, materialText, count = 10
       }
     ];
 
-    const raw = await askOpenRouter(prompt, 0.4, {
-      maxRetries: 2,
-      maxTokens: 2200,
+    const raw = await askAI(prompt, 0.4, {
+      maxRetries: 3,
+      maxTokens: 4096,
       responseFormat: { type: 'json_object' }
     });
 
@@ -217,12 +221,12 @@ async function generateQuiz({ moduleTitle, subjectName, materialText, count = 10
     }
 
     if (collected.length < requestedCount) {
-      await wait(350);
+      await wait(10000);
     }
   }
 
   let topUpAttempt = 0;
-  while (collected.length < requestedCount && topUpAttempt < 6) {
+  while (collected.length < requestedCount && topUpAttempt < 3) {
     topUpAttempt += 1;
     const remaining = requestedCount - collected.length;
     const batchCount = Math.min(5, remaining);
@@ -249,8 +253,8 @@ async function generateQuiz({ moduleTitle, subjectName, materialText, count = 10
       }
     ];
 
-    const raw = await askOpenRouter(topUpPrompt, 0.45, {
-      maxRetries: 1,
+    const raw = await askAI(topUpPrompt, 0.45, {
+      maxRetries: 3,
       maxTokens: 1400,
       responseFormat: { type: 'json_object' }
     });
@@ -276,7 +280,7 @@ async function generateQuiz({ moduleTitle, subjectName, materialText, count = 10
     }
 
     if (collected.length < requestedCount) {
-      await wait(250);
+      await wait(10000);
     }
   }
 
@@ -340,7 +344,7 @@ async function generateFeedback({ moduleTitle, score, weakAreas, review }) {
     }
   ];
 
-  const raw = await askOpenRouter(prompt, 0.4, {
+  const raw = await askAI(prompt, 0.4, {
     maxTokens: 1400,
     responseFormat: { type: 'json_object' }
   });
@@ -372,7 +376,7 @@ async function chatTutor({ moduleTitle, subjectName, materialText, history, mess
   }
 
   messages.push({ role: 'user', content: message });
-  return askOpenRouter(messages, 0.5, { maxTokens: 1200 });
+  return askAI(messages, 0.5, { maxTokens: 1200 });
 }
 
 module.exports = {

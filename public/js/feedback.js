@@ -45,9 +45,9 @@ function renderResult(result) {
     div.className = `review-item ${item.is_correct ? 'good' : 'bad'}`;
     div.innerHTML = `
       <strong>Question ${index + 1}: ${item.is_correct ? 'CORRECT' : 'INCORRECT'}</strong>
-      <p>${item.question}</p>
+      <p class="review-question"><strong>${item.question}</strong></p>
       <p>Your answer: <strong>${selectedLetter}. ${item.selected_answer || 'No answer'}</strong></p>
-      <p>Correct answer: <strong>${correctLetter}. ${item.correct_answer}</strong></p>
+      <p>Correct answer: <strong class="correct-answer">${correctLetter}. ${item.correct_answer}</strong></p>
     `;
     reviewList.appendChild(div);
   });

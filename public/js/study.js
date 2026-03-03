@@ -250,7 +250,7 @@ document.getElementById('generate-explanation').addEventListener('click', async 
       lowered.includes('insufficient credits')
     ) {
       await window.prelabDialog.alert(
-        'AI quota/credits are exhausted. Use another OpenRouter free key/model or try again later.',
+        'AI rate limit reached. Please wait a moment and try again.',
         {
           title: 'Quota Reached',
           icon: 'warning'
@@ -296,7 +296,7 @@ document.getElementById('start-practice').addEventListener('click', async () => 
       lowered.includes('insufficient credits')
     ) {
       await window.prelabDialog.alert(
-        'AI quota/credits are exhausted. Use another OpenRouter free key/model or try again later.',
+        'AI rate limit reached. Please wait a moment and try again.',
         {
           title: 'Quota Reached',
           icon: 'warning'

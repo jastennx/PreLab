@@ -204,6 +204,10 @@ body {
 
 .review-item p { color: var(--ink-soft); }
 .review-item p + p { margin-top: 0.3rem; }
+.review-item .review-question { color: #000000; font-size: 0.95rem; }
+.review-item.bad .review-question,
+.review-item.bad .review-question strong { color: #000000; }
+.review-item.bad .correct-answer { color: #16a34a; }
 
 /* ── Action row ── */
 .action-row {

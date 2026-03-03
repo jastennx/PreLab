@@ -117,11 +117,16 @@ router.get('/health', (_req, res) => {
 
 router.get('/debug-env', (_req, res) => {
   const key = process.env.GROQ_API_KEY || '';
+  const allKeys = Object.keys(process.env).filter(k => 
+    k.includes('GROQ') || k.includes('SUPABASE') || k.includes('AI_') || k.includes('OPENROUTER')
+  );
   res.json({
     hasGroqKey: !!key,
     keyPrefix: key.substring(0, 8),
     keyLength: key.length,
-    model: process.env.GROQ_MODEL || 'not set'
+    model: process.env.GROQ_MODEL || 'not set',
+    envKeysFound: allKeys,
+    isVercel: process.env.VERCEL || 'not set'
   });
 });
 

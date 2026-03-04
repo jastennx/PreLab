@@ -179,6 +179,36 @@ input:focus {
   box-shadow: 0 4px 15px rgba(145, 71, 227, 0.15);
 }
 
+.btn-oauth {
+  margin-top: 0.8rem;
+  width: 100%;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--ink);
+  padding: 0.82rem 1.2rem;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+  transition: all 150ms ease;
+}
+
+.btn-oauth:hover {
+  border-color: var(--primary);
+  background: linear-gradient(135deg, rgba(145, 71, 227, 0.02), rgba(192, 132, 252, 0.02));
+  transform: translateY(-1px);
+}
+
+.btn-oauth:active {
+  transform: translateY(0);
+}
+
+.oauth-icon {
+  width: 20px; height: 20px; flex-shrink: 0;
+}
+
 .error {
   min-height: 1.1rem;
   color: var(--danger);

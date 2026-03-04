@@ -90,6 +90,23 @@ window.prelabAuth = {
     const { data, error } = await client.auth.getUser();
     if (error) throw error;
     return data.user;
+  },
+  async signInWithGoogle(redirectTo = '') {
+    const client = await this.init();
+    if (!client) throw new Error('Supabase client config missing');
+
+    const { data, error } = await client.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectTo || `${window.location.origin}/pages/dashboard`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent'
+        }
+      }
+    });
+    if (error) throw error;
+    return data;
   }
 };
 

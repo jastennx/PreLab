@@ -18,6 +18,7 @@ const fullNameLabel = document.getElementById('full-name-label');
 const fullNameWrap = document.getElementById('full-name-wrap');
 const signupModal = document.getElementById('signup-modal');
 const signupModalClose = document.getElementById('signup-modal-close');
+const googleSigninBtn = document.getElementById('google-signin');
 
 let mode = 'signin';
 let submitCooldownUntil = 0;
@@ -221,6 +222,28 @@ forgotPasswordBtn.addEventListener('click', async () => {
       icon: 'success'
     });
   } catch (error) {
+    authError.textContent = getAuthErrorMessage(error);
+  }
+});
+
+googleSigninBtn.addEventListener('click', async (e) => {
+  e.preventDefault();
+  authError.textContent = '';
+  authInfo.textContent = '';
+
+  await window.prelabAuth.init();
+  if (window.prelabAuth?.missingConfig) {
+    authError.textContent = 'Supabase server config is missing. Set SUPABASE_URL and SUPABASE_ANON_KEY.';
+    return;
+  }
+
+  try {
+    setSubmitState({ busy: true });
+    googleSigninBtn.disabled = true;
+    await window.prelabAuth.signInWithGoogle();
+  } catch (error) {
+    googleSigninBtn.disabled = false;
+    setSubmitState({ busy: false });
     authError.textContent = getAuthErrorMessage(error);
   }
 });

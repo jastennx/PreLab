@@ -144,8 +144,22 @@ async function continueIfAuthenticated() {
   await window.prelabAuth.init();
   if (window.prelabAuth?.missingConfig) return;
 
+  if (window.Swal?.fire) {
+    window.Swal.fire({
+      title: 'Logging in...',
+      text: 'Setting up your session.',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      didOpen: () => { window.Swal.showLoading(); }
+    });
+  }
+
   const user = await getUserWithRetry();
-  if (!user) return;
+  if (!user) {
+    if (window.Swal?.close) window.Swal.close();
+    return;
+  }
 
   await syncUserRecord(user, user.user_metadata?.full_name || user.user_metadata?.name || '');
   persistAuthenticatedUser(user);
@@ -273,8 +287,19 @@ googleSigninBtn.addEventListener('click', async (e) => {
   try {
     setSubmitState({ busy: true });
     googleSigninBtn.disabled = true;
+    if (window.Swal?.fire) {
+      window.Swal.fire({
+        title: 'Logging in...',
+        text: 'Redirecting to Google sign-in.',
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => { window.Swal.showLoading(); }
+      });
+    }
     await window.prelabAuth.signInWithGoogle();
   } catch (error) {
+    if (window.Swal?.close) window.Swal.close();
     googleSigninBtn.disabled = false;
     setSubmitState({ busy: false });
     authError.textContent = getAuthErrorMessage(error);

@@ -62,6 +62,8 @@ async function loadModules(userId) {
       return;
     }
 
+    container.innerHTML = '';
+
     const latestResultByModule = new Map();
     for (const item of results) {
       if (!item?.module_id) continue;

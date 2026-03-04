@@ -194,7 +194,6 @@ body[data-bg-theme='forest'] .bg-orb--3 { background: rgba(132, 204, 22, 0.12) !
 
 .create-card h2,
 .modules-card h2,
-.intro-block h1,
 .study-head-text h1,
 .status-card h1,
 .review-card h2,
@@ -204,6 +203,10 @@ body[data-bg-theme='forest'] .bg-orb--3 { background: rgba(132, 204, 22, 0.12) !
 .reset-card h1,
 .card h1 {
   color: var(--ui-ink) !important;
+}
+
+.intro-block h1 {
+  color: #f2e9ff !important;
 }
 
 .btn-primary,

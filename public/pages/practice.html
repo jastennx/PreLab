@@ -9,8 +9,6 @@
   <link rel="stylesheet" href="./theme.css" />
 </head>
 <body>
-  <div class="bg-orb bg-orb--1"></div>
-  <div class="bg-orb bg-orb--2"></div>
 
   <header class="topbar">
     <div class="brand">
@@ -28,29 +26,62 @@
     </div>
   </header>
 
-  <main class="container">
-    <section class="status-card">
-      <div class="status-top">
+  <!-- Thin progress bar spanning full width -->
+  <div class="progress-strip">
+    <span id="progress-fill"></span>
+  </div>
+
+  <main class="quiz-layout">
+
+    <!-- Left sidebar — navigation rail -->
+    <aside class="quiz-sidebar">
+      <div class="sidebar-header">
         <h1 id="module-title">Module Quiz</h1>
-        <span class="question-counter">Question <span id="current-number">1</span> of <span id="total-number">1</span></span>
-      </div>
-      <p class="practice-note">Answer each question, then submit to get detailed feedback.</p>
-      <div class="progress"><span id="progress-fill"></span></div>
-    </section>
-
-    <section class="question-card">
-      <h2 id="question-text">Loading question...</h2>
-      <div id="option-list" class="option-list"></div>
-      <div class="question-footer">
-        <button id="next-btn">Next</button>
-        <p id="submit-status" class="submit-status" aria-live="polite"></p>
+        <p class="practice-note">Answer each question, then submit to get detailed feedback.</p>
       </div>
 
-      <div class="pager-section">
+      <div class="sidebar-counter">
+        <span class="counter-current" id="current-number">1</span>
+        <span class="counter-sep">/</span>
+        <span class="counter-total" id="total-number">1</span>
+      </div>
+
+      <div class="sidebar-pager">
         <h3>Questions</h3>
         <div id="pager" class="pager"></div>
       </div>
+    </aside>
+
+    <!-- Main question area -->
+    <section class="quiz-main">
+      <div class="question-area">
+        <div class="question-card">
+          <h2 id="question-text">Loading question...</h2>
+          <div id="option-list" class="option-list"></div>
+        </div>
+
+        <div class="quiz-footer">
+          <button id="next-btn">Next</button>
+          <p id="submit-status" class="submit-status" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <div class="quiz-tips">
+        <div class="tip-item">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <span>Read each question carefully before selecting an answer.</span>
+        </div>
+        <div class="tip-item">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <span>Use the sidebar to navigate and review flagged questions.</span>
+        </div>
+        <div class="tip-item">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <span>Submit when ready — you'll get detailed feedback on every answer.</span>
+        </div>
+      </div>
     </section>
+
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -63,5 +94,3 @@
   <script src="../js/practice.js"></script>
 </body>
 </html>
-
-

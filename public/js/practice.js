@@ -3,7 +3,35 @@ let answers = [];
 let quizData = null;
 let isSubmitting = false;
 
+function goTo(url, replace = false) {
+  if (window.prelabNavigate) {
+    window.prelabNavigate(url, { replace });
+    return;
+  }
+  if (replace) {
+    window.location.replace(url);
+    return;
+  }
+  window.location.href = url;
+}
+
+function showQuestionSkeleton() {
+  const question = document.getElementById('question-text');
+  const options = document.getElementById('option-list');
+  if (question) question.textContent = 'Preparing your quiz experience...';
+  if (options) {
+    options.innerHTML = `
+      <div class="skeleton-grid loading-shell">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+      </div>
+    `;
+  }
+}
+
 async function bootstrap() {
+  showQuestionSkeleton();
   const authUser = await window.requireAuthUser();
   if (!authUser) return;
 
@@ -16,7 +44,7 @@ async function bootstrap() {
       icon: 'warning'
     });
     const moduleQuery = module.id ? `?moduleId=${encodeURIComponent(module.id)}` : '';
-    window.location.href = `/pages/study${moduleQuery}`;
+    goTo(`/pages/study${moduleQuery}`);
     return;
   }
 
@@ -208,7 +236,7 @@ document.getElementById('next-btn').addEventListener('click', async () => {
     setSubmitLoading(false, '');
     const resultId = encodeURIComponent(data.result?.id || '');
     const moduleId = encodeURIComponent(module.id || '');
-    window.location.href = `/pages/feedback?resultId=${resultId}&moduleId=${moduleId}`;
+    goTo(`/pages/feedback?resultId=${resultId}&moduleId=${moduleId}`);
   } catch (error) {
     setSubmitLoading(false, '');
     await window.prelabDialog.alert(error.message, { title: 'Submit Failed', icon: 'error' });

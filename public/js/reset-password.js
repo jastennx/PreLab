@@ -4,6 +4,18 @@ const resetMessage = document.getElementById('reset-message');
 const newPasswordInput = document.getElementById('new-password');
 const confirmNewPasswordInput = document.getElementById('confirm-new-password');
 
+function goTo(url, replace = false) {
+  if (window.prelabNavigate) {
+    window.prelabNavigate(url, { replace });
+    return;
+  }
+  if (replace) {
+    window.location.replace(url);
+    return;
+  }
+  window.location.href = url;
+}
+
 function setBusy(busy) {
   resetSubmit.disabled = busy;
   resetSubmit.textContent = busy ? 'Updating Password...' : 'Update Password';
@@ -75,7 +87,7 @@ resetForm.addEventListener('submit', async (event) => {
       title: 'Password Updated',
       icon: 'success'
     });
-    window.location.href = '/pages/signin?mode=signin&reset=1';
+    goTo('/pages/signin?mode=signin&reset=1');
   } catch (error) {
     await window.prelabDialog.alert(error.message || 'Failed to reset password.', {
       title: 'Reset Failed',

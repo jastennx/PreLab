@@ -1,4 +1,22 @@
 const MAX_QUIZ_GUIDANCE_LENGTH = 600;
+const CHAT_LOADING_SKELETON = `
+  <div class="skeleton-grid loading-shell">
+    <div class="skeleton-card"></div>
+    <div class="skeleton-card"></div>
+  </div>
+`;
+
+function goTo(url, replace = false) {
+  if (window.prelabNavigate) {
+    window.prelabNavigate(url, { replace });
+    return;
+  }
+  if (replace) {
+    window.location.replace(url);
+    return;
+  }
+  window.location.href = url;
+}
 
 async function bootstrap() {
   const authUser = await window.requireAuthUser();
@@ -10,7 +28,7 @@ async function bootstrap() {
       title: 'Module Required',
       icon: 'warning'
     });
-    window.location.href = '/pages/dashboard';
+    goTo('/pages/dashboard');
     return;
   }
 
@@ -154,15 +172,26 @@ function extractExplanationFromBrokenJson(raw) {
 
 async function loadChat(userId, moduleId) {
   const box = document.getElementById('chat-messages');
-  box.innerHTML = '';
+  box.innerHTML = CHAT_LOADING_SKELETON;
 
   try {
     const data = await window.api.get(`/chat/${moduleId}?userId=${encodeURIComponent(userId)}`);
+    box.innerHTML = '';
+    if (!Array.isArray(data.messages) || !data.messages.length) {
+      box.innerHTML = `
+        <div class="empty-state">
+          <strong>No chat yet</strong>
+          Ask a question below and your study assistant will respond here.
+        </div>
+      `;
+      return;
+    }
     for (const msg of data.messages) {
       addMessage(msg.role, msg.content);
     }
   } catch (_error) {
-    addMessage('assistant', 'Chat history not available yet.');
+    box.innerHTML = '';
+    addMessage('assistant', 'Chat history is unavailable right now. You can still ask a new question.');
   }
 }
 
@@ -309,7 +338,7 @@ document.getElementById('start-practice').addEventListener('click', async () => 
     setQuizLoading(false, '');
     const quizId = encodeURIComponent(data.quizId || '');
     const moduleId = encodeURIComponent(module.id || '');
-    window.location.href = `/pages/practice?quizId=${quizId}&moduleId=${moduleId}`;
+    goTo(`/pages/practice?quizId=${quizId}&moduleId=${moduleId}`);
   } catch (error) {
     setQuizLoading(false, '');
     const message = String(error.message || '');

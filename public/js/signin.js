@@ -24,6 +24,18 @@ let mode = 'signin';
 let submitCooldownUntil = 0;
 const OAUTH_PENDING_KEY = 'prelab_oauth_pending';
 
+function goTo(url, replace = false) {
+  if (window.prelabNavigate) {
+    window.prelabNavigate(url, { replace });
+    return;
+  }
+  if (replace) {
+    window.location.replace(url);
+    return;
+  }
+  window.location.href = url;
+}
+
 function openSignupLoadingPopup() {
   if (!window.Swal?.fire) return;
   window.Swal.fire({
@@ -167,7 +179,7 @@ async function continueIfAuthenticated() {
 
   await syncUserRecord(user, user.user_metadata?.full_name || user.user_metadata?.name || '');
   persistAuthenticatedUser(user);
-  window.location.replace('/pages/dashboard');
+  goTo('/pages/dashboard', true);
 }
 
 async function syncUserRecord(user, fallbackName = '') {
@@ -355,7 +367,7 @@ authForm.addEventListener('submit', async (event) => {
     const user = data.user;
     await syncUserRecord(user, fullName);
     persistAuthenticatedUser(user);
-    window.location.href = '/pages/dashboard';
+    goTo('/pages/dashboard');
   } catch (error) {
     authError.textContent = getAuthErrorMessage(error);
     if (Number(error?.status || 0) === 429 || `${error?.message || ''}`.toLowerCase().includes('rate limit')) {

@@ -1,4 +1,36 @@
+function goTo(url, replace = false) {
+  if (window.prelabNavigate) {
+    window.prelabNavigate(url, { replace });
+    return;
+  }
+  if (replace) {
+    window.location.replace(url);
+    return;
+  }
+  window.location.href = url;
+}
+
+function showFeedbackSkeleton() {
+  const reviewList = document.getElementById('review-list');
+  const tipsList = document.getElementById('tips-list');
+  if (reviewList) {
+    reviewList.innerHTML = `
+      <div class="skeleton-grid loading-shell">
+        <div class="skeleton-card skeleton-card--tall"></div>
+        <div class="skeleton-card skeleton-card--tall"></div>
+      </div>
+    `;
+  }
+  if (tipsList) {
+    tipsList.innerHTML = `
+      <li class="skeleton-card" style="list-style:none;height:18px;"></li>
+      <li class="skeleton-card" style="list-style:none;height:18px;"></li>
+    `;
+  }
+}
+
 async function bootstrap() {
+  showFeedbackSkeleton();
   const authUser = await window.requireAuthUser();
   if (!authUser) return;
 
@@ -8,7 +40,7 @@ async function bootstrap() {
       title: 'Result Missing',
       icon: 'warning'
     });
-    window.location.href = '/pages/dashboard';
+    goTo('/pages/dashboard');
     return;
   }
 
@@ -53,6 +85,15 @@ function renderResult(result) {
 
   const reviewList = document.getElementById('review-list');
   reviewList.innerHTML = '';
+
+  if (!review.length) {
+    reviewList.innerHTML = `
+      <div class="empty-state">
+        <strong>No answer review available</strong>
+        Try generating and submitting a new quiz to view detailed breakdowns.
+      </div>
+    `;
+  }
 
   review.forEach((item, index) => {
     const selectedLetter =

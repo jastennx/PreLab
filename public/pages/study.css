@@ -467,3 +467,69 @@ select:focus-visible, textarea:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* Layout refresh v2 */
+.layout {
+  grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.9fr);
+  gap: clamp(1rem, 2vw, 1.8rem);
+}
+
+.study-head {
+  padding: 0.2rem 0.1rem 0.8rem;
+  border-bottom: 1px solid #ece2f6;
+}
+
+.quiz-guidance-wrap {
+  margin-top: 1.1rem;
+  border: 1px solid #ece2f6;
+  border-radius: 14px;
+  padding: 0.9rem;
+  background: #fcf9ff;
+}
+
+.action-block {
+  margin-top: 1rem;
+  border: 1px solid #ebe0f6;
+  border-radius: 14px;
+  background: #fdfbff;
+  padding: 0.9rem;
+}
+
+.controls {
+  grid-template-columns: 1fr minmax(132px, auto) 1fr;
+}
+
+.explanation-card {
+  margin-top: 1rem;
+  border-radius: 16px;
+  padding: 1.1rem;
+}
+
+.chat-panel {
+  min-height: min(80vh, 880px);
+  padding: 1.1rem;
+}
+
+.chat-head {
+  margin-bottom: 0.7rem;
+}
+
+.chat-messages {
+  min-height: 280px;
+  max-height: 60vh;
+}
+
+#chat-form {
+  margin-top: 0.7rem;
+}
+
+@media (max-width: 1180px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-panel {
+    position: static;
+    min-height: auto;
+  }
+}

@@ -8,6 +8,18 @@ const closeDemoBtn = document.getElementById('close-demo');
 const demoOverlay = document.getElementById('demo-overlay');
 const demoVideo = document.getElementById('demo-video');
 
+function goTo(url, replace = false) {
+  if (window.prelabNavigate) {
+    window.prelabNavigate(url, { replace });
+    return;
+  }
+  if (replace) {
+    window.location.replace(url);
+    return;
+  }
+  window.location.href = url;
+}
+
 function redirectOAuthCallbackToSignin() {
   const searchParams = new URLSearchParams(window.location.search || '');
   const rawHash = window.location.hash || '';
@@ -23,7 +35,7 @@ function redirectOAuthCallbackToSignin() {
 
   if (!hasQueryPayload && (!hasHashPayload || isEmailFlow)) return;
 
-  window.location.replace(`/pages/signin${window.location.search || ''}${rawHash}`);
+  goTo(`/pages/signin${window.location.search || ''}${rawHash}`, true);
 }
 
 function redirectSignupHashToAccountCreated() {
@@ -36,12 +48,12 @@ function redirectSignupHashToAccountCreated() {
   if (!hasAuthPayload) return;
 
   if (type === 'signup') {
-    window.location.replace(`/pages/account-created${rawHash}`);
+    goTo(`/pages/account-created${rawHash}`, true);
     return;
   }
 
   if (type === 'recovery') {
-    window.location.replace(`/pages/reset-password${rawHash}`);
+    goTo(`/pages/reset-password${rawHash}`, true);
   }
 }
 
@@ -54,11 +66,11 @@ function closeDemoModal() {
 }
 
 function goToSignin() {
-  window.location.href = '/pages/signin?mode=signin';
+  goTo('/pages/signin?mode=signin');
 }
 
 function goToSignup() {
-  window.location.href = '/pages/signin?mode=signup';
+  goTo('/pages/signin?mode=signup');
 }
 
 loginBtn.addEventListener('click', goToSignin);

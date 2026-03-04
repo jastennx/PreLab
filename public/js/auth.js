@@ -130,6 +130,18 @@ window.clearFlowState = function clearFlowState() {
   window.localStorage.removeItem('prelab_result');
 };
 
+function goTo(url, replace = false) {
+  if (window.prelabNavigate) {
+    window.prelabNavigate(url, { replace });
+    return;
+  }
+  if (replace) {
+    window.location.replace(url);
+    return;
+  }
+  window.location.href = url;
+}
+
 window.requireAuthUser = async function requireAuthUser() {
   await window.prelabAuth.init();
 
@@ -138,7 +150,7 @@ window.requireAuthUser = async function requireAuthUser() {
       title: 'Configuration Error',
       icon: 'error'
     });
-    window.location.href = '/pages/home';
+    goTo('/pages/home');
     return null;
   }
 
@@ -147,7 +159,7 @@ window.requireAuthUser = async function requireAuthUser() {
     if (!user) {
       window.clearActiveAuthSession();
       window.clearFlowState();
-      window.location.href = '/pages/home';
+      goTo('/pages/home');
       return null;
     }
 
@@ -155,7 +167,7 @@ window.requireAuthUser = async function requireAuthUser() {
       await window.prelabAuth.signOut();
       window.clearActiveAuthSession();
       window.clearFlowState();
-      window.location.href = '/pages/home';
+      goTo('/pages/home');
       return null;
     }
 
@@ -171,7 +183,7 @@ window.requireAuthUser = async function requireAuthUser() {
     return user;
   } catch (_error) {
     window.clearActiveAuthSession();
-    window.location.href = '/pages/home';
+    goTo('/pages/home');
     return null;
   }
 };
@@ -187,7 +199,7 @@ window.confirmAndSignOut = async function confirmAndSignOut() {
   await window.prelabAuth.signOut();
   window.clearActiveAuthSession();
   window.clearFlowState();
-  window.location.href = '/pages/home';
+  goTo('/pages/home');
   return true;
 };
 

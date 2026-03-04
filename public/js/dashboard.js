@@ -1,4 +1,23 @@
 const user = JSON.parse(window.localStorage.getItem('prelab_user') || '{}');
+const MODULE_LOADING_SKELETON = `
+  <div class="skeleton-grid loading-shell">
+    <div class="skeleton-card"></div>
+    <div class="skeleton-card"></div>
+    <div class="skeleton-card"></div>
+  </div>
+`;
+
+function goTo(url, replace = false) {
+  if (window.prelabNavigate) {
+    window.prelabNavigate(url, { replace });
+    return;
+  }
+  if (replace) {
+    window.location.replace(url);
+    return;
+  }
+  window.location.href = url;
+}
 
 async function bootstrap() {
   const authUser = await window.requireAuthUser();
@@ -24,7 +43,7 @@ async function bootstrap() {
 
 async function loadModules(userId) {
   const container = document.getElementById('module-list');
-  container.innerHTML = '';
+  container.innerHTML = MODULE_LOADING_SKELETON;
 
   try {
     const [modulesData, resultsData] = await Promise.all([
@@ -34,7 +53,12 @@ async function loadModules(userId) {
     const modules = modulesData.modules || [];
     const results = resultsData.results || [];
     if (!modules.length) {
-      container.innerHTML = '<p>No modules yet. Create your first one.</p>';
+      container.innerHTML = `
+        <div class="empty-state">
+          <strong>No modules yet</strong>
+          Start by creating your first study module to unlock quizzes and feedback.
+        </div>
+      `;
       return;
     }
 
@@ -100,7 +124,7 @@ async function loadModules(userId) {
               `/results/${resultId}?userId=${encodeURIComponent(userId)}`
             );
             window.localStorage.setItem('prelab_result', JSON.stringify(resultPayload.result));
-            window.location.href = `/pages/feedback?resultId=${encodeURIComponent(resultId)}`;
+            goTo(`/pages/feedback?resultId=${encodeURIComponent(resultId)}`);
             return;
           }
 
@@ -110,14 +134,19 @@ async function loadModules(userId) {
           window.localStorage.removeItem('prelab_quiz');
           window.localStorage.removeItem('prelab_result');
           window.localStorage.setItem('prelab_module', JSON.stringify(details.module));
-          window.location.href = `/pages/study?moduleId=${encodeURIComponent(moduleId)}`;
+          goTo(`/pages/study?moduleId=${encodeURIComponent(moduleId)}`);
         } finally {
           btn.disabled = false;
         }
       });
     });
   } catch (error) {
-    container.innerHTML = `<p>${error.message}</p>`;
+    container.innerHTML = `
+      <div class="empty-state">
+        <strong>Could not load modules</strong>
+        ${error.message}
+      </div>
+    `;
   }
 }
 

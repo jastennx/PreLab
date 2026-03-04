@@ -30,8 +30,7 @@ body {
   background: var(--bg-950);
   background-image:
     radial-gradient(ellipse 1200px 700px at 10% 2%, rgba(143, 73, 230, 0.2), transparent 56%),
-    radial-gradient(ellipse 900px 520px at 90% 8%, rgba(169, 91, 255, 0.14), transparent 54%),
-    radial-gradient(ellipse 620px 340px at 50% 100%, rgba(112, 45, 190, 0.16), transparent 62%);
+    radial-gradient(ellipse 900px 520px at 90% 8%, rgba(169, 91, 255, 0.14), transparent 54%);
   line-height: 1.58;
   overflow-x: hidden;
 }
@@ -65,12 +64,7 @@ body {
 }
 
 .bg-orb--3 {
-  width: 300px;
-  height: 300px;
-  left: 42%;
-  bottom: -130px;
-  background: rgba(98, 39, 172, 0.2);
-  animation-duration: 20s;
+  display: none;
 }
 
 .topbar {
@@ -147,10 +141,10 @@ body {
 }
 
 .hero {
-  min-height: min(78vh, 760px);
+  min-height: clamp(460px, 62vh, 680px);
   display: grid;
   place-items: center;
-  padding: clamp(2rem, 5vw, 4.2rem) 1rem 2rem;
+  padding: clamp(1.4rem, 4vw, 3rem) 1rem 1.2rem;
 }
 
 .hero-content {
@@ -303,7 +297,7 @@ body {
 .features {
   width: min(1180px, 92vw);
   margin: 0 auto;
-  padding: 1rem 0 4rem;
+  padding: 0.5rem 0 1.4rem;
 }
 
 .section-title {
@@ -355,9 +349,12 @@ body {
 
 .site-footer {
   margin-top: auto;
+  position: relative;
+  z-index: 1;
   text-align: center;
-  padding: 2rem 1rem;
+  padding: 1.25rem 1rem 1.4rem;
   border-top: 1px solid var(--line);
+  background: rgba(10, 1, 24, 0.72);
   color: #aa97c6;
   font-size: 0.84rem;
 }

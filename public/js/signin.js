@@ -283,7 +283,7 @@ googleSigninBtn.addEventListener('click', async (e) => {
           showConfirmButton: false,
           didOpen: () => { window.Swal.showLoading(); }
         });
-      }, 1500);
+      }, 5000);
     }
     await window.prelabAuth.signInWithGoogle();
   } catch (error) {

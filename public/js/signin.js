@@ -274,14 +274,16 @@ googleSigninBtn.addEventListener('click', async (e) => {
     setSubmitState({ busy: true });
     googleSigninBtn.disabled = true;
     if (window.Swal?.fire) {
-      window.Swal.fire({
-        title: 'Logging in...',
-        text: 'Redirecting to Google sign-in.',
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        showConfirmButton: false,
-        didOpen: () => { window.Swal.showLoading(); }
-      });
+      setTimeout(() => {
+        window.Swal.fire({
+          title: 'Logging in...',
+          text: 'Redirecting to Google sign-in.',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          showConfirmButton: false,
+          didOpen: () => { window.Swal.showLoading(); }
+        });
+      }, 1500);
     }
     await window.prelabAuth.signInWithGoogle();
   } catch (error) {

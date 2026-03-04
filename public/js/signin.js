@@ -144,22 +144,8 @@ async function continueIfAuthenticated() {
   await window.prelabAuth.init();
   if (window.prelabAuth?.missingConfig) return;
 
-  if (window.Swal?.fire) {
-    window.Swal.fire({
-      title: 'Logging in...',
-      text: 'Setting up your session.',
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      showConfirmButton: false,
-      didOpen: () => { window.Swal.showLoading(); }
-    });
-  }
-
   const user = await getUserWithRetry();
-  if (!user) {
-    if (window.Swal?.close) window.Swal.close();
-    return;
-  }
+  if (!user) return;
 
   await syncUserRecord(user, user.user_metadata?.full_name || user.user_metadata?.name || '');
   persistAuthenticatedUser(user);

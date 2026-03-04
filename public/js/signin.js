@@ -121,6 +121,37 @@ function setPasswordVisibility(show) {
   confirmPasswordInput.type = type;
 }
 
+function persistAuthenticatedUser(user) {
+  window.localStorage.setItem(
+    'prelab_user',
+    JSON.stringify({ id: user.id, email: user.email, full_name: user.user_metadata?.full_name || '' })
+  );
+}
+
+async function getUserWithRetry(attempts = 5, delayMs = 250) {
+  for (let index = 0; index < attempts; index += 1) {
+    const user = await window.prelabAuth.getUser();
+    if (user) return user;
+    if (index < attempts - 1) {
+      await new Promise((resolve) => window.setTimeout(resolve, delayMs));
+    }
+  }
+
+  return null;
+}
+
+async function continueIfAuthenticated() {
+  await window.prelabAuth.init();
+  if (window.prelabAuth?.missingConfig) return;
+
+  const user = await getUserWithRetry();
+  if (!user) return;
+
+  await syncUserRecord(user, user.user_metadata?.full_name || user.user_metadata?.name || '');
+  persistAuthenticatedUser(user);
+  window.location.replace('/pages/dashboard');
+}
+
 async function syncUserRecord(user, fallbackName = '') {
   if (!user?.id || !user?.email) return;
 
@@ -179,6 +210,8 @@ const params = new URLSearchParams(window.location.search);
 setMode(params.get('mode') === 'signup' ? 'signup' : 'signin');
 showVerifiedToastIfNeeded(params);
 showPasswordResetToastIfNeeded(params);
+continueIfAuthenticated().catch(() => {
+});
 
 switchModeBtn.addEventListener('click', () => setMode(mode === 'signin' ? 'signup' : 'signin'));
 signupModalClose.addEventListener('click', closeSignupModal);
@@ -301,10 +334,7 @@ authForm.addEventListener('submit', async (event) => {
     const data = await window.prelabAuth.signIn(email, password);
     const user = data.user;
     await syncUserRecord(user, fullName);
-    window.localStorage.setItem(
-      'prelab_user',
-      JSON.stringify({ id: user.id, email: user.email, full_name: user.user_metadata?.full_name || '' })
-    );
+    persistAuthenticatedUser(user);
     window.location.href = '/pages/dashboard';
   } catch (error) {
     authError.textContent = getAuthErrorMessage(error);

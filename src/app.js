@@ -32,7 +32,8 @@ app.get('/pages/:page', (req, res, next) => {
 });
 
 app.get('/', (_req, res) => {
-  res.redirect('/pages/home');
+  const query = _req.url.includes('?') ? _req.url.slice(_req.url.indexOf('?')) : '';
+  res.redirect(`/pages/home${query}`);
 });
 
 app.use('/api', (_req, res) => {

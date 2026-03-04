@@ -8,6 +8,24 @@ const closeDemoBtn = document.getElementById('close-demo');
 const demoOverlay = document.getElementById('demo-overlay');
 const demoVideo = document.getElementById('demo-video');
 
+function redirectOAuthCallbackToSignin() {
+  const searchParams = new URLSearchParams(window.location.search || '');
+  const rawHash = window.location.hash || '';
+  const hashParams = rawHash.startsWith('#') ? new URLSearchParams(rawHash.slice(1)) : new URLSearchParams();
+  const callbackType = hashParams.get('type');
+
+  const hasQueryPayload =
+    searchParams.has('code') || searchParams.has('error') || searchParams.has('error_description');
+  const hasHashPayload = Boolean(
+    hashParams.get('access_token') || hashParams.get('refresh_token') || hashParams.get('provider_token')
+  );
+  const isEmailFlow = callbackType === 'signup' || callbackType === 'recovery';
+
+  if (!hasQueryPayload && (!hasHashPayload || isEmailFlow)) return;
+
+  window.location.replace(`/pages/signin${window.location.search || ''}${rawHash}`);
+}
+
 function redirectSignupHashToAccountCreated() {
   const rawHash = window.location.hash || '';
   if (!rawHash.startsWith('#')) return;
@@ -27,6 +45,7 @@ function redirectSignupHashToAccountCreated() {
   }
 }
 
+redirectOAuthCallbackToSignin();
 redirectSignupHashToAccountCreated();
 
 function closeDemoModal() {

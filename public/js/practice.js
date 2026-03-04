@@ -7,15 +7,16 @@ async function bootstrap() {
   const authUser = await window.requireAuthUser();
   if (!authUser) return;
 
-  const module = JSON.parse(window.localStorage.getItem('prelab_module') || '{}');
-  const quizWrapper = JSON.parse(window.localStorage.getItem('prelab_quiz') || '{}');
+  const module = await resolveActiveModule(authUser.id);
+  const quizWrapper = await resolveActiveQuiz(authUser.id);
 
   if (!module.id || !quizWrapper.quizId || !quizWrapper.quiz?.questions?.length) {
     await window.prelabDialog.alert('No quiz found. Generate one from Study page.', {
       title: 'Quiz Missing',
       icon: 'warning'
     });
-    window.location.href = '/pages/study';
+    const moduleQuery = module.id ? `?moduleId=${encodeURIComponent(module.id)}` : '';
+    window.location.href = `/pages/study${moduleQuery}`;
     return;
   }
 
@@ -27,6 +28,54 @@ async function bootstrap() {
 
   renderPager();
   renderQuestion();
+}
+
+async function resolveActiveModule(userId) {
+  const params = new URLSearchParams(window.location.search || '');
+  const moduleId = String(params.get('moduleId') || '').trim();
+  const cached = JSON.parse(window.localStorage.getItem('prelab_module') || '{}');
+
+  if (!moduleId) return cached;
+  if (cached.id === moduleId) return cached;
+
+  try {
+    const details = await window.api.get(
+      `/modules/${encodeURIComponent(moduleId)}?userId=${encodeURIComponent(userId)}`
+    );
+    if (details?.module?.id) {
+      window.localStorage.setItem('prelab_module', JSON.stringify(details.module));
+      return details.module;
+    }
+  } catch (_error) {
+    return cached;
+  }
+
+  return cached;
+}
+
+async function resolveActiveQuiz(userId) {
+  const params = new URLSearchParams(window.location.search || '');
+  const quizId = String(params.get('quizId') || '').trim();
+  const cached = JSON.parse(window.localStorage.getItem('prelab_quiz') || '{}');
+
+  if (!quizId) return cached;
+  if (cached.quizId === quizId) return cached;
+
+  try {
+    const payload = await window.api.get(
+      `/quizzes/${encodeURIComponent(quizId)}?userId=${encodeURIComponent(userId)}`
+    );
+    const quiz = payload?.quiz?.quiz_json;
+    if (payload?.quiz?.id && quiz?.questions?.length) {
+      const wrapped = { quizId: payload.quiz.id, quiz };
+      window.localStorage.setItem('prelab_quiz', JSON.stringify(wrapped));
+      return wrapped;
+    }
+  } catch (_error) {
+    return cached;
+  }
+
+  return cached;
 }
 
 function renderPager() {
@@ -155,8 +204,11 @@ document.getElementById('next-btn').addEventListener('click', async () => {
     });
 
     window.localStorage.setItem('prelab_result', JSON.stringify(data.result));
+    window.localStorage.removeItem('prelab_quiz');
     setSubmitLoading(false, '');
-    window.location.href = '/pages/feedback';
+    const resultId = encodeURIComponent(data.result?.id || '');
+    const moduleId = encodeURIComponent(module.id || '');
+    window.location.href = `/pages/feedback?resultId=${resultId}&moduleId=${moduleId}`;
   } catch (error) {
     setSubmitLoading(false, '');
     await window.prelabDialog.alert(error.message, { title: 'Submit Failed', icon: 'error' });

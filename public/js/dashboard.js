@@ -89,22 +89,28 @@ async function loadModules(userId) {
               }
             );
             if (!shouldDelete) return;
-            await window.api.del(`/modules/${moduleId}`);
+            await window.api.del(`/modules/${moduleId}?userId=${encodeURIComponent(userId)}`);
             await loadModules(userId);
             return;
           }
 
           if (action === 'summary') {
             const resultId = btn.dataset.resultId;
-            const resultPayload = await window.api.get(`/results/${resultId}`);
+            const resultPayload = await window.api.get(
+              `/results/${resultId}?userId=${encodeURIComponent(userId)}`
+            );
             window.localStorage.setItem('prelab_result', JSON.stringify(resultPayload.result));
-            window.location.href = '/pages/feedback';
+            window.location.href = `/pages/feedback?resultId=${encodeURIComponent(resultId)}`;
             return;
           }
 
-          const details = await window.api.get(`/modules/${moduleId}`);
+          const details = await window.api.get(
+            `/modules/${moduleId}?userId=${encodeURIComponent(userId)}`
+          );
+          window.localStorage.removeItem('prelab_quiz');
+          window.localStorage.removeItem('prelab_result');
           window.localStorage.setItem('prelab_module', JSON.stringify(details.module));
-          window.location.href = '/pages/study';
+          window.location.href = `/pages/study?moduleId=${encodeURIComponent(moduleId)}`;
         } finally {
           btn.disabled = false;
         }
@@ -221,6 +227,8 @@ document.getElementById('module-form').addEventListener('submit', async (event) 
     event.target.reset();
     setFileAttachedState(null);
     await loadModules(authUser.id);
+    window.localStorage.removeItem('prelab_quiz');
+    window.localStorage.removeItem('prelab_result');
     window.localStorage.setItem('prelab_module', JSON.stringify(data.module));
   } catch (error) {
     setModuleLoading(false, error.message);

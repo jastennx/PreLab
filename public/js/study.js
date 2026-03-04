@@ -4,7 +4,7 @@ async function bootstrap() {
   const authUser = await window.requireAuthUser();
   if (!authUser) return;
 
-  const module = JSON.parse(window.localStorage.getItem('prelab_module') || '{}');
+  const module = await resolveActiveModule(authUser.id);
   if (!module.id) {
     await window.prelabDialog.alert('Select a module first from dashboard.', {
       title: 'Module Required',
@@ -18,6 +18,29 @@ async function bootstrap() {
   document.getElementById('subject-name').textContent = `Subject: ${module.subjects?.name || 'General'}`;
   setupQuizGuidanceInput(module.id);
   await loadChat(authUser.id, module.id);
+}
+
+async function resolveActiveModule(userId) {
+  const params = new URLSearchParams(window.location.search || '');
+  const moduleId = String(params.get('moduleId') || '').trim();
+  const cached = JSON.parse(window.localStorage.getItem('prelab_module') || '{}');
+
+  if (!moduleId) return cached;
+  if (cached.id === moduleId) return cached;
+
+  try {
+    const details = await window.api.get(
+      `/modules/${encodeURIComponent(moduleId)}?userId=${encodeURIComponent(userId)}`
+    );
+    if (details?.module?.id) {
+      window.localStorage.setItem('prelab_module', JSON.stringify(details.module));
+      return details.module;
+    }
+  } catch (_error) {
+    return cached;
+  }
+
+  return cached;
 }
 
 function quizGuidanceStorageKey(moduleId) {
@@ -282,8 +305,11 @@ document.getElementById('start-practice').addEventListener('click', async () => 
       await window.prelabDialog.alert(data.warning, { title: 'Notice', icon: 'warning' });
     }
     window.localStorage.setItem('prelab_quiz', JSON.stringify(data));
+    window.localStorage.removeItem('prelab_result');
     setQuizLoading(false, '');
-    window.location.href = '/pages/practice';
+    const quizId = encodeURIComponent(data.quizId || '');
+    const moduleId = encodeURIComponent(module.id || '');
+    window.location.href = `/pages/practice?quizId=${quizId}&moduleId=${moduleId}`;
   } catch (error) {
     setQuizLoading(false, '');
     const message = String(error.message || '');

@@ -2,7 +2,7 @@ async function bootstrap() {
   const authUser = await window.requireAuthUser();
   if (!authUser) return;
 
-  const result = JSON.parse(window.localStorage.getItem('prelab_result') || '{}');
+  const result = await resolveActiveResult(authUser.id);
   if (!result.id) {
     await window.prelabDialog.alert('No result found.', {
       title: 'Result Missing',
@@ -13,6 +13,29 @@ async function bootstrap() {
   }
 
   renderResult(result);
+}
+
+async function resolveActiveResult(userId) {
+  const params = new URLSearchParams(window.location.search || '');
+  const resultId = String(params.get('resultId') || '').trim();
+  const cached = JSON.parse(window.localStorage.getItem('prelab_result') || '{}');
+
+  if (!resultId) return cached;
+  if (cached.id === resultId) return cached;
+
+  try {
+    const payload = await window.api.get(
+      `/results/${encodeURIComponent(resultId)}?userId=${encodeURIComponent(userId)}`
+    );
+    if (payload?.result?.id) {
+      window.localStorage.setItem('prelab_result', JSON.stringify(payload.result));
+      return payload.result;
+    }
+  } catch (_error) {
+    return cached;
+  }
+
+  return cached;
 }
 
 function renderResult(result) {
@@ -61,6 +84,11 @@ function renderResult(result) {
     li.textContent = tip;
     tipsList.appendChild(li);
   });
+
+  const retryLink = document.getElementById('retry-study-link');
+  if (retryLink && result.module_id) {
+    retryLink.href = `/pages/study?moduleId=${encodeURIComponent(result.module_id)}`;
+  }
 }
 
 document.getElementById('logout-btn').addEventListener('click', async () => {

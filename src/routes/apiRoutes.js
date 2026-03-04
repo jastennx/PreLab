@@ -265,11 +265,15 @@ router.get('/modules', async (req, res) => {
 
 router.get('/modules/:id', async (req, res) => {
   try {
+    const userId = String(req.query.userId || '').trim();
+    if (!userId) return res.status(400).json({ error: 'userId query parameter is required' });
+
     const moduleId = req.params.id;
     const { data, error } = await supabaseAdmin
       .from('modules')
       .select('*, subjects(name)')
       .eq('id', moduleId)
+      .eq('user_id', userId)
       .single();
 
     if (error) throw error;
@@ -281,9 +285,19 @@ router.get('/modules/:id', async (req, res) => {
 
 router.delete('/modules/:id', async (req, res) => {
   try {
+    const userId = String(req.query.userId || '').trim();
+    if (!userId) return res.status(400).json({ error: 'userId query parameter is required' });
+
     const moduleId = req.params.id;
-    const { error } = await supabaseAdmin.from('modules').delete().eq('id', moduleId);
+    const { data, error } = await supabaseAdmin
+      .from('modules')
+      .delete()
+      .eq('id', moduleId)
+      .eq('user_id', userId)
+      .select('id')
+      .maybeSingle();
     if (error) throw error;
+    if (!data) return res.status(404).json({ error: 'Module not found' });
     res.json({ message: 'Module deleted' });
   } catch (error) {
     fail(res, error);
@@ -498,14 +512,37 @@ router.get('/results', async (req, res) => {
 
 router.get('/results/:id', async (req, res) => {
   try {
+    const userId = String(req.query.userId || '').trim();
+    if (!userId) return res.status(400).json({ error: 'userId query parameter is required' });
+
     const { data, error } = await supabaseAdmin
       .from('results')
       .select('*')
       .eq('id', req.params.id)
+      .eq('user_id', userId)
       .single();
 
     if (error) throw error;
     res.json({ result: data });
+  } catch (error) {
+    fail(res, error, 404);
+  }
+});
+
+router.get('/quizzes/:id', async (req, res) => {
+  try {
+    const userId = String(req.query.userId || '').trim();
+    if (!userId) return res.status(400).json({ error: 'userId query parameter is required' });
+
+    const { data, error } = await supabaseAdmin
+      .from('quizzes')
+      .select('id,module_id,user_id,quiz_json,created_at')
+      .eq('id', req.params.id)
+      .eq('user_id', userId)
+      .single();
+
+    if (error) throw error;
+    res.json({ quiz: data });
   } catch (error) {
     fail(res, error, 404);
   }

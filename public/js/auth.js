@@ -110,6 +110,12 @@ window.prelabAuth = {
   }
 };
 
+window.clearFlowState = function clearFlowState() {
+  window.localStorage.removeItem('prelab_module');
+  window.localStorage.removeItem('prelab_quiz');
+  window.localStorage.removeItem('prelab_result');
+};
+
 window.requireAuthUser = async function requireAuthUser() {
   await window.prelabAuth.init();
 
@@ -125,8 +131,14 @@ window.requireAuthUser = async function requireAuthUser() {
   try {
     const user = await window.prelabAuth.getUser();
     if (!user) {
+      window.clearFlowState();
       window.location.href = '/pages/home';
       return null;
+    }
+
+    const previous = JSON.parse(window.localStorage.getItem('prelab_user') || 'null');
+    if (previous?.id && previous.id !== user.id) {
+      window.clearFlowState();
     }
 
     window.localStorage.setItem(
@@ -149,6 +161,7 @@ window.confirmAndSignOut = async function confirmAndSignOut() {
   if (!shouldLogout) return false;
 
   await window.prelabAuth.signOut();
+  window.clearFlowState();
   window.location.href = '/pages/home';
   return true;
 };

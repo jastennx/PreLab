@@ -33,6 +33,9 @@ app.get('/pages/:page', (req, res, next) => {
 
 app.get('/', (_req, res) => {
   const query = _req.url.includes('?') ? _req.url.slice(_req.url.indexOf('?')) : '';
+  if (_req.query.code || _req.query.error) {
+    return res.redirect(`/pages/signin${query}`);
+  }
   res.redirect(`/pages/home${query}`);
 });
 

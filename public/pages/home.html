@@ -7,7 +7,16 @@
   <link rel="icon" type="image/svg+xml" href="/assets/prelab-mark.svg" />
   <link rel="stylesheet" href="/pages/home.css" />
 </head>
-<body>
+<body style="visibility:hidden">
+  <script>
+    (function(){
+      var s=window.location.search||'',h=window.location.hash||'';
+      if(s.indexOf('code=')!==-1||s.indexOf('error=')!==-1||(h.indexOf('access_token=')!==-1&&h.indexOf('type=signup')===-1&&h.indexOf('type=recovery')===-1)){
+        window.location.replace('/pages/signin'+s+h);return;
+      }
+      document.body.style.visibility='visible';
+    })();
+  </script>
   <!-- Decorative background orbs -->
   <div class="bg-orb bg-orb--1"></div>
   <div class="bg-orb bg-orb--2"></div>

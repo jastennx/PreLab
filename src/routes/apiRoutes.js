@@ -27,6 +27,54 @@ function normalizeQuizGuidance(value) {
   return String(value || '').replace(/\s+/g, ' ').trim().slice(0, MAX_QUIZ_GUIDANCE_LENGTH);
 }
 
+function requestedUserIdFromRequest(req) {
+  const fromBody = String(req.body?.userId || '').trim();
+  const fromQuery = String(req.query?.userId || '').trim();
+  return fromBody || fromQuery || '';
+}
+
+function resolveAuthenticatedUserId(req) {
+  const authUserId = String(req.authUser?.id || '').trim();
+  if (!authUserId) {
+    const error = new Error('Unauthorized');
+    error.statusCode = 401;
+    throw error;
+  }
+
+  const requestedUserId = requestedUserIdFromRequest(req);
+  if (requestedUserId && requestedUserId !== authUserId) {
+    const error = new Error('userId does not match authenticated user');
+    error.statusCode = 403;
+    throw error;
+  }
+
+  return authUserId;
+}
+
+async function requireAuthenticatedUser(req, res, next) {
+  try {
+    const authHeader = String(req.headers.authorization || '');
+    if (!authHeader.toLowerCase().startsWith('bearer ')) {
+      return res.status(401).json({ error: 'Missing bearer token' });
+    }
+
+    const token = authHeader.slice(7).trim();
+    if (!token) {
+      return res.status(401).json({ error: 'Missing bearer token' });
+    }
+
+    const { data, error } = await supabaseAdmin.auth.getUser(token);
+    if (error || !data?.user) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
+    req.authUser = data.user;
+    next();
+  } catch (error) {
+    return fail(res, error, error.statusCode || 401);
+  }
+}
+
 async function ensurePublicUser(userId) {
   if (!userId) throw new Error('userId is required');
 
@@ -116,27 +164,17 @@ router.get('/health', (_req, res) => {
 });
 
 router.get('/debug-env', (_req, res) => {
-  const rawKey = process.env.GROQ_API_KEY || '';
-  const key = config.groqApiKey || '';
-  const keySource = process.env.GROQ_API_KEY
-    ? 'GROQ_API_KEY'
-    : process.env.AI_API_KEY
-      ? 'AI_API_KEY'
-      : process.env.OPENAI_API_KEY
-        ? 'OPENAI_API_KEY'
-        : 'none';
-  const allKeys = Object.keys(process.env).filter(k => 
-    k.includes('GROQ') || k.includes('SUPABASE') || k.includes('AI_') || k.includes('OPENROUTER')
-  );
+  if (process.env.NODE_ENV === 'production' || config.isVercel) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
   res.json({
-    hasGroqKey: !!key,
-    keySource,
-    keyPrefix: key.substring(0, 8),
-    keyLength: key.length,
-    rawKeyLength: rawKey.length,
+    hasGroqKey: Boolean(config.groqApiKey),
+    hasSupabaseUrl: Boolean(config.supabaseUrl),
+    hasAnonKey: Boolean(config.supabaseAnonKey),
+    hasServiceRoleKey: Boolean(config.supabaseServiceRoleKey),
     model: config.groqModel || 'not set',
-    envKeysFound: allKeys,
-    isVercel: process.env.VERCEL || 'not set'
+    nodeEnv: process.env.NODE_ENV || 'development'
   });
 });
 
@@ -148,15 +186,18 @@ router.get('/public-config', (_req, res) => {
   });
 });
 
+router.use(requireAuthenticatedUser);
+
 router.post('/auth/sync-user', async (req, res) => {
   try {
-    const userId = (req.body.userId || '').trim();
-    const email = (req.body.email || '').trim();
-    const fullName = (req.body.fullName || '').trim();
+    const userId = resolveAuthenticatedUserId(req);
+    const email = String(req.authUser?.email || '').trim();
+    const fullName =
+      String(req.body.fullName || '').trim() ||
+      String(req.authUser?.user_metadata?.full_name || '').trim() ||
+      String(req.authUser?.user_metadata?.name || '').trim();
 
-    if (!userId || !email) {
-      return res.status(400).json({ error: 'userId and email are required' });
-    }
+    if (!email) return res.status(400).json({ error: 'Authenticated user email is required' });
 
     const { error } = await supabaseAdmin.from('users').upsert(
       {
@@ -170,13 +211,13 @@ router.post('/auth/sync-user', async (req, res) => {
 
     res.json({ ok: true });
   } catch (error) {
-    fail(res, error);
+    fail(res, error, error.statusCode || 500);
   }
 });
 
 router.post('/modules', upload.single('materialFile'), async (req, res) => {
   try {
-    const userId = (req.body.userId || '').trim();
+    const userId = resolveAuthenticatedUserId(req);
     const subjectName = (req.body.subjectName || '').trim();
     const moduleTitle = (req.body.moduleTitle || '').trim();
     const materialText = (req.body.materialText || '').trim();
@@ -190,9 +231,9 @@ router.post('/modules', upload.single('materialFile'), async (req, res) => {
       sourceText = await extractMaterialTextFromStoragePath(storagePath, userId);
     }
 
-    if (!userId || !subjectName || !moduleTitle) {
+    if (!subjectName || !moduleTitle) {
       return res.status(400).json({
-        error: 'userId, subjectName, and moduleTitle are required'
+        error: 'subjectName and moduleTitle are required'
       });
     }
 
@@ -241,14 +282,13 @@ router.post('/modules', upload.single('materialFile'), async (req, res) => {
 
     res.status(201).json({ module });
   } catch (error) {
-    fail(res, error);
+    fail(res, error, error.statusCode || 500);
   }
 });
 
 router.get('/modules', async (req, res) => {
   try {
-    const { userId } = req.query;
-    if (!userId) return res.status(400).json({ error: 'userId query parameter is required' });
+    const userId = resolveAuthenticatedUserId(req);
 
     const { data, error } = await supabaseAdmin
       .from('modules')
@@ -259,14 +299,13 @@ router.get('/modules', async (req, res) => {
     if (error) throw error;
     res.json({ modules: data || [] });
   } catch (error) {
-    fail(res, error);
+    fail(res, error, error.statusCode || 500);
   }
 });
 
 router.get('/modules/:id', async (req, res) => {
   try {
-    const userId = String(req.query.userId || '').trim();
-    if (!userId) return res.status(400).json({ error: 'userId query parameter is required' });
+    const userId = resolveAuthenticatedUserId(req);
 
     const moduleId = req.params.id;
     const { data, error } = await supabaseAdmin
@@ -279,14 +318,13 @@ router.get('/modules/:id', async (req, res) => {
     if (error) throw error;
     res.json({ module: data });
   } catch (error) {
-    fail(res, error, 404);
+    fail(res, error, error.statusCode || 404);
   }
 });
 
 router.delete('/modules/:id', async (req, res) => {
   try {
-    const userId = String(req.query.userId || '').trim();
-    if (!userId) return res.status(400).json({ error: 'userId query parameter is required' });
+    const userId = resolveAuthenticatedUserId(req);
 
     const moduleId = req.params.id;
     const { data, error } = await supabaseAdmin
@@ -300,12 +338,13 @@ router.delete('/modules/:id', async (req, res) => {
     if (!data) return res.status(404).json({ error: 'Module not found' });
     res.json({ message: 'Module deleted' });
   } catch (error) {
-    fail(res, error);
+    fail(res, error, error.statusCode || 500);
   }
 });
 
 router.post('/study/explain', async (req, res) => {
   try {
+    const userId = resolveAuthenticatedUserId(req);
     const { moduleId, topic } = req.body;
     if (!moduleId) return res.status(400).json({ error: 'moduleId is required' });
 
@@ -313,6 +352,7 @@ router.post('/study/explain', async (req, res) => {
       .from('modules')
       .select('id,title,source_text,subjects(name)')
       .eq('id', moduleId)
+      .eq('user_id', userId)
       .single();
 
     if (error) throw error;
@@ -326,22 +366,24 @@ router.post('/study/explain', async (req, res) => {
 
     res.json({ explanation });
   } catch (error) {
-    fail(res, error);
+    fail(res, error, error.statusCode || 500);
   }
 });
 
 router.post('/practice/generate', async (req, res) => {
   try {
-    const { moduleId, userId, questionCount } = req.body;
+    const userId = resolveAuthenticatedUserId(req);
+    const { moduleId, questionCount } = req.body;
     const quizGuidance = normalizeQuizGuidance(req.body.quizGuidance);
-    if (!moduleId || !userId) {
-      return res.status(400).json({ error: 'moduleId and userId are required' });
+    if (!moduleId) {
+      return res.status(400).json({ error: 'moduleId is required' });
     }
 
     const { data: module, error: moduleError } = await supabaseAdmin
       .from('modules')
       .select('id,title,source_text,subjects(name)')
       .eq('id', moduleId)
+      .eq('user_id', userId)
       .single();
 
     if (moduleError) throw moduleError;
@@ -418,32 +460,42 @@ router.post('/practice/generate', async (req, res) => {
           : null
     });
   } catch (error) {
-    fail(res, error);
+    fail(res, error, error.statusCode || 500);
   }
 });
 
 router.post('/practice/submit', async (req, res) => {
   try {
-    const { quizId, moduleId, userId, answers } = req.body;
-    if (!quizId || !moduleId || !userId || !Array.isArray(answers)) {
-      return res.status(400).json({ error: 'quizId, moduleId, userId and answers[] are required' });
+    const userId = resolveAuthenticatedUserId(req);
+    const { quizId, moduleId, answers } = req.body;
+    if (!quizId || !moduleId || !Array.isArray(answers)) {
+      return res.status(400).json({ error: 'quizId, moduleId and answers[] are required' });
     }
 
     const { data: quizRecord, error: quizError } = await supabaseAdmin
       .from('quizzes')
-      .select('id,quiz_json')
+      .select('id,module_id,user_id,quiz_json')
       .eq('id', quizId)
+      .eq('module_id', moduleId)
+      .eq('user_id', userId)
       .single();
 
     if (quizError) throw quizError;
 
     const questions = quizRecord.quiz_json?.questions || [];
+    if (!Array.isArray(questions) || !questions.length) {
+      return res.status(400).json({ error: 'Quiz has no questions' });
+    }
+    if (answers.length !== questions.length) {
+      return res.status(400).json({ error: 'answers[] must match quiz question count' });
+    }
     const evaluated = evaluateQuiz({ questions, userAnswers: answers });
 
     const { data: module, error: moduleError } = await supabaseAdmin
       .from('modules')
       .select('title')
       .eq('id', moduleId)
+      .eq('user_id', userId)
       .single();
 
     if (moduleError) throw moduleError;
@@ -488,14 +540,13 @@ router.post('/practice/submit', async (req, res) => {
 
     res.json({ result: resultRecord });
   } catch (error) {
-    fail(res, error);
+    fail(res, error, error.statusCode || 500);
   }
 });
 
 router.get('/results', async (req, res) => {
   try {
-    const { userId } = req.query;
-    if (!userId) return res.status(400).json({ error: 'userId query parameter is required' });
+    const userId = resolveAuthenticatedUserId(req);
 
     const { data, error } = await supabaseAdmin
       .from('results')
@@ -506,14 +557,13 @@ router.get('/results', async (req, res) => {
     if (error) throw error;
     res.json({ results: data || [] });
   } catch (error) {
-    fail(res, error);
+    fail(res, error, error.statusCode || 500);
   }
 });
 
 router.get('/results/:id', async (req, res) => {
   try {
-    const userId = String(req.query.userId || '').trim();
-    if (!userId) return res.status(400).json({ error: 'userId query parameter is required' });
+    const userId = resolveAuthenticatedUserId(req);
 
     const { data, error } = await supabaseAdmin
       .from('results')
@@ -525,14 +575,13 @@ router.get('/results/:id', async (req, res) => {
     if (error) throw error;
     res.json({ result: data });
   } catch (error) {
-    fail(res, error, 404);
+    fail(res, error, error.statusCode || 404);
   }
 });
 
 router.get('/quizzes/:id', async (req, res) => {
   try {
-    const userId = String(req.query.userId || '').trim();
-    if (!userId) return res.status(400).json({ error: 'userId query parameter is required' });
+    const userId = resolveAuthenticatedUserId(req);
 
     const { data, error } = await supabaseAdmin
       .from('quizzes')
@@ -544,21 +593,23 @@ router.get('/quizzes/:id', async (req, res) => {
     if (error) throw error;
     res.json({ quiz: data });
   } catch (error) {
-    fail(res, error, 404);
+    fail(res, error, error.statusCode || 404);
   }
 });
 
 router.post('/chat', async (req, res) => {
   try {
-    const { moduleId, userId, message, history } = req.body;
-    if (!moduleId || !userId || !message) {
-      return res.status(400).json({ error: 'moduleId, userId and message are required' });
+    const userId = resolveAuthenticatedUserId(req);
+    const { moduleId, message, history } = req.body;
+    if (!moduleId || !message) {
+      return res.status(400).json({ error: 'moduleId and message are required' });
     }
 
     const { data: module, error: moduleError } = await supabaseAdmin
       .from('modules')
       .select('id,title,source_text,subjects(name)')
       .eq('id', moduleId)
+      .eq('user_id', userId)
       .single();
 
     if (moduleError) throw moduleError;
@@ -590,15 +641,23 @@ router.post('/chat', async (req, res) => {
 
     res.json({ reply });
   } catch (error) {
-    fail(res, error);
+    fail(res, error, error.statusCode || 500);
   }
 });
 
 router.get('/chat/:moduleId', async (req, res) => {
   try {
-    const { userId } = req.query;
+    const userId = resolveAuthenticatedUserId(req);
     const moduleId = req.params.moduleId;
-    if (!userId) return res.status(400).json({ error: 'userId query parameter is required' });
+
+    const { data: module, error: moduleError } = await supabaseAdmin
+      .from('modules')
+      .select('id')
+      .eq('id', moduleId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (moduleError) throw moduleError;
+    if (!module) return res.status(404).json({ error: 'Module not found' });
 
     const { data, error } = await supabaseAdmin
       .from('chat_messages')
@@ -610,7 +669,7 @@ router.get('/chat/:moduleId', async (req, res) => {
     if (error) throw error;
     res.json({ messages: data || [] });
   } catch (error) {
-    fail(res, error);
+    fail(res, error, error.statusCode || 500);
   }
 });
 

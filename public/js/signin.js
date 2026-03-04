@@ -22,6 +22,7 @@ const googleSigninBtn = document.getElementById('google-signin');
 
 let mode = 'signin';
 let submitCooldownUntil = 0;
+const OAUTH_PENDING_KEY = 'prelab_oauth_pending';
 
 function openSignupLoadingPopup() {
   if (!window.Swal?.fire) return;
@@ -122,6 +123,8 @@ function setPasswordVisibility(show) {
 }
 
 function persistAuthenticatedUser(user) {
+  window.markActiveAuthSession();
+  window.sessionStorage.removeItem(OAUTH_PENDING_KEY);
   window.localStorage.setItem(
     'prelab_user',
     JSON.stringify({ id: user.id, email: user.email, full_name: user.user_metadata?.full_name || '' })
@@ -143,6 +146,10 @@ async function getUserWithRetry(attempts = 5, delayMs = 250) {
 async function continueIfAuthenticated() {
   await window.prelabAuth.init();
   if (window.prelabAuth?.missingConfig) return;
+
+  const oauthPending = window.sessionStorage.getItem(OAUTH_PENDING_KEY) === '1';
+  const allowAutoContinue = oauthPending || window.hasActiveAuthSession();
+  if (!allowAutoContinue) return;
 
   const user = await getUserWithRetry();
   if (!user) return;
@@ -284,8 +291,10 @@ googleSigninBtn.addEventListener('click', async (e) => {
   try {
     setSubmitState({ busy: true });
     googleSigninBtn.disabled = true;
+    window.sessionStorage.setItem(OAUTH_PENDING_KEY, '1');
     await window.prelabAuth.signInWithGoogle();
   } catch (error) {
+    window.sessionStorage.removeItem(OAUTH_PENDING_KEY);
     googleSigninBtn.disabled = false;
     setSubmitState({ busy: false });
     authError.textContent = getAuthErrorMessage(error);

@@ -21,28 +21,52 @@ async function parseApiResponse(res) {
   return data || {};
 }
 
+async function buildAuthHeaders(base = {}) {
+  const headers = { ...base };
+
+  try {
+    if (!window.prelabAuth?.init) return headers;
+    await window.prelabAuth.init();
+    const client = window.prelabAuth?.client;
+    if (!client) return headers;
+
+    const { data } = await client.auth.getSession();
+    const token = data?.session?.access_token;
+    if (token) headers.Authorization = `Bearer ${token}`;
+  } catch (_error) {
+    // Public pages may not have an auth session yet.
+  }
+
+  return headers;
+}
+
 window.api = {
   async get(path) {
-    const res = await fetch(`${window.PRELAB_CONFIG.apiBase}${path}`);
+    const headers = await buildAuthHeaders();
+    const res = await fetch(`${window.PRELAB_CONFIG.apiBase}${path}`, { headers });
     return parseApiResponse(res);
   },
   async post(path, body) {
+    const headers = await buildAuthHeaders({ 'Content-Type': 'application/json' });
     const res = await fetch(`${window.PRELAB_CONFIG.apiBase}${path}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify(body)
     });
     return parseApiResponse(res);
   },
   async postForm(path, formData) {
+    const headers = await buildAuthHeaders();
     const res = await fetch(`${window.PRELAB_CONFIG.apiBase}${path}`, {
       method: 'POST',
+      headers,
       body: formData
     });
     return parseApiResponse(res);
   },
   async del(path) {
-    const res = await fetch(`${window.PRELAB_CONFIG.apiBase}${path}`, { method: 'DELETE' });
+    const headers = await buildAuthHeaders();
+    const res = await fetch(`${window.PRELAB_CONFIG.apiBase}${path}`, { method: 'DELETE', headers });
     return parseApiResponse(res);
   }
 };

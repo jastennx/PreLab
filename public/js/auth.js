@@ -110,6 +110,20 @@ window.prelabAuth = {
   }
 };
 
+const ACTIVE_AUTH_SESSION_KEY = 'prelab_active_auth_session';
+
+window.markActiveAuthSession = function markActiveAuthSession() {
+  window.sessionStorage.setItem(ACTIVE_AUTH_SESSION_KEY, '1');
+};
+
+window.clearActiveAuthSession = function clearActiveAuthSession() {
+  window.sessionStorage.removeItem(ACTIVE_AUTH_SESSION_KEY);
+};
+
+window.hasActiveAuthSession = function hasActiveAuthSession() {
+  return window.sessionStorage.getItem(ACTIVE_AUTH_SESSION_KEY) === '1';
+};
+
 window.clearFlowState = function clearFlowState() {
   window.localStorage.removeItem('prelab_module');
   window.localStorage.removeItem('prelab_quiz');
@@ -131,6 +145,15 @@ window.requireAuthUser = async function requireAuthUser() {
   try {
     const user = await window.prelabAuth.getUser();
     if (!user) {
+      window.clearActiveAuthSession();
+      window.clearFlowState();
+      window.location.href = '/pages/home';
+      return null;
+    }
+
+    if (!window.hasActiveAuthSession()) {
+      await window.prelabAuth.signOut();
+      window.clearActiveAuthSession();
       window.clearFlowState();
       window.location.href = '/pages/home';
       return null;
@@ -147,6 +170,7 @@ window.requireAuthUser = async function requireAuthUser() {
     );
     return user;
   } catch (_error) {
+    window.clearActiveAuthSession();
     window.location.href = '/pages/home';
     return null;
   }
@@ -161,6 +185,7 @@ window.confirmAndSignOut = async function confirmAndSignOut() {
   if (!shouldLogout) return false;
 
   await window.prelabAuth.signOut();
+  window.clearActiveAuthSession();
   window.clearFlowState();
   window.location.href = '/pages/home';
   return true;

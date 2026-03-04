@@ -32,10 +32,10 @@ async function resolveActiveResult(userId) {
       return payload.result;
     }
   } catch (_error) {
-    return cached;
   }
 
-  return cached;
+  window.localStorage.removeItem('prelab_result');
+  return {};
 }
 
 function renderResult(result) {

@@ -37,10 +37,10 @@ async function resolveActiveModule(userId) {
       return details.module;
     }
   } catch (_error) {
-    return cached;
   }
 
-  return cached;
+  window.localStorage.removeItem('prelab_module');
+  return {};
 }
 
 function quizGuidanceStorageKey(moduleId) {

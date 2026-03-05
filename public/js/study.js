@@ -224,9 +224,79 @@ function addMessage(role, content) {
   const box = document.getElementById('chat-messages');
   const div = document.createElement('div');
   div.className = `msg ${role}`;
-  div.textContent = content;
+  if (role === 'assistant') {
+    div.innerHTML = formatAssistantMessage(content);
+  } else {
+    div.textContent = content;
+  }
   box.appendChild(div);
   box.scrollTop = box.scrollHeight;
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function formatInline(text) {
+  const escaped = escapeHtml(text);
+  return escaped
+    .replace(/`([^`]+)`/g, '<code class="msg-inline-code">$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+}
+
+function formatAssistantMessage(content) {
+  const raw = String(content || '').trim();
+  if (!raw) return '';
+
+  const normalized = raw
+    .replace(/\r\n/g, '\n')
+    .replace(/([^\n])\s+(\d+\.\s+\*\*)/g, '$1\n$2')
+    .replace(/([^\n])\s+(\d+\.\s+[A-Z])/g, '$1\n$2');
+
+  const lines = normalized.split('\n');
+  const blocks = [];
+  let listType = null;
+  let listItems = [];
+
+  const flushList = () => {
+    if (!listType || !listItems.length) return;
+    const tag = listType === 'ol' ? 'ol' : 'ul';
+    blocks.push(`<${tag} class="msg-list">${listItems.join('')}</${tag}>`);
+    listType = null;
+    listItems = [];
+  };
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) {
+      flushList();
+      continue;
+    }
+
+    const numbered = line.match(/^(\d+)[\.\)]\s+(.+)$/);
+    const bulleted = line.match(/^[-*•]\s+(.+)$/);
+    if (numbered || bulleted) {
+      const nextType = numbered ? 'ol' : 'ul';
+      const itemText = numbered ? numbered[2] : bulleted[1];
+      if (listType && listType !== nextType) {
+        flushList();
+      }
+      listType = nextType;
+      listItems.push(`<li>${formatInline(itemText)}</li>`);
+      continue;
+    }
+
+    flushList();
+    blocks.push(`<p class="msg-paragraph">${formatInline(line)}</p>`);
+  }
+
+  flushList();
+  return blocks.join('');
 }
 
 function setStatusText(id, text = '', isLoading = false) {

@@ -623,6 +623,7 @@ body.has-global-grid .bg-mesh {
   padding: 0.56rem 0.72rem;
   border-radius: 12px;
   font-size: 0.82rem;
+  line-height: 1.55;
   word-break: break-word;
 }
 
@@ -639,6 +640,41 @@ body.has-global-grid .bg-mesh {
   color: var(--ink);
   border: 1px solid rgba(197, 174, 235, 0.2);
   border-bottom-left-radius: 4px;
+}
+
+.chat-messages .msg.assistant .msg-paragraph {
+  margin: 0 0 0.42rem;
+}
+
+.chat-messages .msg.assistant .msg-paragraph:last-child {
+  margin-bottom: 0;
+}
+
+.chat-messages .msg.assistant .msg-list {
+  margin: 0.1rem 0 0.48rem 1rem;
+  padding: 0;
+}
+
+.chat-messages .msg.assistant .msg-list:last-child {
+  margin-bottom: 0;
+}
+
+.chat-messages .msg.assistant .msg-list li {
+  margin: 0.22rem 0;
+}
+
+.chat-messages .msg.assistant strong {
+  color: #efe4ff;
+}
+
+.msg-inline-code {
+  display: inline-block;
+  padding: 0.05rem 0.34rem;
+  border-radius: 6px;
+  background: rgba(143, 73, 230, 0.18);
+  border: 1px solid rgba(197, 174, 235, 0.22);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78em;
 }
 
 .chat-form {

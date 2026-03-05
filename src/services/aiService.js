@@ -377,7 +377,13 @@ async function chatTutor({ moduleTitle, subjectName, materialText, history, mess
   const messages = [
     {
       role: 'system',
-      content: `You are the PreLab study assistant. Explain clearly for college IT students. Subject: ${subjectName}. Module: ${moduleTitle}. Use this material as context: ${materialText}`
+      content:
+        `You are the PreLab study assistant. Explain clearly for college IT students. ` +
+        `Subject: ${subjectName}. Module: ${moduleTitle}. ` +
+        `Always keep responses organized with short sections and concise bullet points when helpful. ` +
+        `Use clean Markdown-like formatting (headings, bullets, numbered steps) and avoid one long wall of text. ` +
+        `Do not output JSON unless the user explicitly requests JSON. ` +
+        `Use this material as context: ${materialText}`
     }
   ];
 

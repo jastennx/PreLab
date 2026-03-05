@@ -28,6 +28,21 @@ async function bootstrap() {
     authUser.user_metadata?.name ||
     (authUser.email ? authUser.email.split('@')[0] : 'User');
   document.getElementById('user-email').textContent = preferredName;
+
+  /* Show saved profile picture in topbar avatar */
+  const avatarEl = document.getElementById('user-avatar');
+  const savedAvatar = localStorage.getItem('prelab_avatar');
+  if (savedAvatar && avatarEl) {
+    avatarEl.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = savedAvatar;
+    img.alt = 'Avatar';
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:inherit;';
+    avatarEl.appendChild(img);
+  } else if (avatarEl) {
+    avatarEl.textContent = preferredName.charAt(0).toUpperCase();
+  }
+
   const knownUsers = JSON.parse(window.localStorage.getItem('prelab_known_users') || '[]');
   const isReturningUser = Array.isArray(knownUsers) && knownUsers.includes(authUser.id);
   document.getElementById('welcome-title').textContent = isReturningUser

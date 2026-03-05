@@ -27,19 +27,20 @@ body {
   color: #f0eaf8;
   background: var(--bg-950);
   background-image:
-    radial-gradient(ellipse 1200px 700px at 15% 5%, rgba(145, 71, 227, 0.18), transparent 60%),
-    radial-gradient(ellipse 900px 500px at 85% 15%, rgba(120, 50, 200, 0.12), transparent 55%);
+    radial-gradient(ellipse 1200px 700px at 10% 2%, rgba(143, 73, 230, 0.2), transparent 56%),
+    radial-gradient(ellipse 900px 520px at 90% 8%, rgba(169, 91, 255, 0.14), transparent 54%);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
 
 .bg-orb {
-  position: fixed; border-radius: 50%; filter: blur(80px);
-  pointer-events: none; z-index: 0; opacity: 0.4;
+  position: fixed; border-radius: 50%; filter: blur(84px);
+  pointer-events: none; z-index: 0; opacity: 0.34;
+  animation: orbFloat 18s ease-in-out infinite;
 }
-.bg-orb--1 { width: 450px; height: 450px; background: rgba(145, 71, 227, 0.2); top: -80px; left: -80px; }
-.bg-orb--2 { width: 350px; height: 350px; background: rgba(192, 132, 252, 0.1); bottom: 10%; right: -60px; }
+.bg-orb--1 { width: 470px; height: 470px; background: rgba(143, 73, 230, 0.22); top: -120px; left: -120px; }
+.bg-orb--2 { width: 380px; height: 380px; background: rgba(208, 141, 255, 0.14); right: -100px; top: 20%; animation-duration: 22s; animation-direction: reverse; }
 
 .topbar {
   position: sticky; top: 0; z-index: 50; height: 72px;
@@ -317,4 +318,10 @@ button:focus-visible, a:focus-visible, input:focus-visible {
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+@keyframes orbFloat {
+  0%, 100% { transform: translate(0, 0); }
+  33% { transform: translate(16px, -12px); }
+  66% { transform: translate(-12px, 10px); }
 }

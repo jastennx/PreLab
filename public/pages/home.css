@@ -416,12 +416,6 @@ body {
   font-size: 0.85rem;
 }
 
-.topbar .bg-theme-select {
-  background: rgba(17, 6, 37, 0.9) !important;
-  color: #e8ddf8 !important;
-  border-color: rgba(193, 165, 236, 0.4) !important;
-}
-
 @media (max-width: 980px) {
   .feature-grid {
     grid-template-columns: 1fr;

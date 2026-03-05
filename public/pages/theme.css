@@ -21,12 +21,26 @@ body.page-leaving {
 /* ═════════ BACKGROUND THEMES ═════════ */
 /* User-chosen accent drives the ambient background glow */
 body {
+  --grid-opacity: 0.08;
   --glow-opacity: 1;
   background-image:
+    linear-gradient(rgb(197 174 235 / var(--grid-opacity, 0)) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(197 174 235 / var(--grid-opacity, 0)) 1px, transparent 1px),
     radial-gradient(ellipse 1400px 850px at 8% 0%, hsla(var(--user-accent-h, 260), var(--user-accent-s, 84%), 52%, calc(0.38 * var(--glow-opacity, 1))) 0%, transparent 58%),
     radial-gradient(ellipse 1100px 650px at 92% 5%, hsla(var(--user-accent2-h, 290), var(--user-accent2-s, 94%), 55%, calc(0.28 * var(--glow-opacity, 1))) 0%, transparent 56%),
     radial-gradient(ellipse 800px 550px at 50% 55%, hsla(var(--user-accent-h, 260), var(--user-accent-s, 84%), 48%, calc(0.16 * var(--glow-opacity, 1))) 0%, transparent 62%),
     radial-gradient(ellipse 500px 400px at 30% 80%, hsla(var(--user-accent2-h, 290), var(--user-accent2-s, 94%), 50%, calc(0.10 * var(--glow-opacity, 1))) 0%, transparent 60%);
+  background-size:
+    42px 42px,
+    42px 42px,
+    auto,
+    auto,
+    auto,
+    auto;
+}
+
+body.page-home {
+  --grid-opacity: 0;
 }
 
 .bg-orb--1 {
@@ -136,6 +150,111 @@ body.bg-light .material-divider { color: #6b5a82; }
 body.bg-light .file-indicator { color: #6b5a82; background: rgba(255,255,255,.4); border-color: rgba(30,10,60,.12); }
 body.bg-light .name-input { background: rgba(255,255,255,.5); border-color: rgba(30,10,60,.15); color: #1a1025; }
 body.bg-light .name-input::placeholder { color: #8a7a9e; }
+/* study + practice page adaptive overrides */
+body.bg-light .nav-chip {
+  color: #3d2e55;
+  background: rgba(124,58,237,.08);
+  border-color: rgba(30,10,60,.14);
+}
+body.bg-light .nav-chip:hover {
+  color: #1a1025;
+  background: rgba(124,58,237,.14);
+}
+body.bg-light .hero-panel,
+body.bg-light .panel,
+body.bg-light .quick-steps,
+body.bg-light .exp-block,
+body.bg-light .quiz-sidebar,
+body.bg-light .tip-item,
+body.bg-light .option,
+body.bg-light .chat-drawer,
+body.bg-light .drawer-head,
+body.bg-light .chat-form,
+body.bg-light .chat-form input,
+body.bg-light .chat-messages .msg.assistant {
+  background: rgba(255,255,255,.45) !important;
+  border-color: rgba(30,10,60,.14) !important;
+  color: #1a1025;
+}
+body.bg-light .panel-tag,
+body.bg-light .eyebrow,
+body.bg-light .step-number,
+body.bg-light .exp-block h3,
+body.bg-light .counter-current {
+  color: #7c3aed !important;
+}
+body.bg-light .hint-text,
+body.bg-light .hero-subject,
+body.bg-light .step-card p,
+body.bg-light .chat-status,
+body.bg-light .practice-note,
+body.bg-light .counter-total,
+body.bg-light .counter-sep,
+body.bg-light .submit-status {
+  color: #6b5a82 !important;
+}
+body.bg-light .quiz-config textarea,
+body.bg-light .quiz-config select,
+body.bg-light #quiz-guidance,
+body.bg-light #question-count,
+body.bg-light .pager button,
+body.bg-light .sidebar-counter {
+  background: rgba(255,255,255,.55) !important;
+  border-color: rgba(30,10,60,.15) !important;
+  color: #1a1025 !important;
+}
+body.bg-light .quiz-config textarea::placeholder,
+body.bg-light #quiz-guidance::placeholder {
+  color: #8a7a9e !important;
+}
+body.bg-light .actions a {
+  color: #7c3aed;
+  background: rgba(124,58,237,.08);
+  border-color: rgba(124,58,237,.2);
+}
+body.bg-light .actions a:hover {
+  background: rgba(124,58,237,.14);
+}
+body.bg-light .actions button {
+  background: rgba(239,68,68,.08);
+  border-color: rgba(239,68,68,.2);
+  color: #dc2626;
+}
+body.bg-light .chat-messages .msg.user,
+body.bg-light .btn-accent,
+body.bg-light .btn-cta,
+body.bg-light .chat-form button,
+body.bg-light #next-btn {
+  background: linear-gradient(135deg, #8f49e6, #b06cff) !important;
+  color: #fff !important;
+}
+body.bg-light .drawer-close {
+  background: rgba(124,58,237,.1) !important;
+  color: #3d2e55 !important;
+  border-color: rgba(30,10,60,.15) !important;
+}
+body.bg-light .step-card {
+  background: rgba(255,255,255,.4) !important;
+  border-color: rgba(30,10,60,.15) !important;
+}
+body.bg-light .quiz-main,
+body.bg-light .question-card h2,
+body.bg-light .sidebar-header h1,
+body.bg-light .option {
+  color: #1a1025 !important;
+}
+body.bg-light .option-prefix {
+  background: rgba(0,0,0,.06) !important;
+  color: #3d2e55 !important;
+}
+body.bg-light .option.selected {
+  background: rgba(124,58,237,.1) !important;
+  border-color: rgba(124,58,237,.35) !important;
+}
+body.bg-light .option.selected .option-prefix {
+  background: #8f49e6 !important;
+  color: #fff !important;
+}
 /* keep bg-orbs subtle on light bg */
 body.bg-light .bg-orb { opacity: 0.12; }
 

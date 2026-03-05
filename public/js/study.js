@@ -1,4 +1,6 @@
 const MAX_QUIZ_GUIDANCE_LENGTH = 600;
+const MIN_QUESTION_COUNT = 1;
+const MAX_QUESTION_COUNT = 100;
 const CHAT_LOADING_SKELETON = `
   <div class="skeleton-grid loading-shell">
     <div class="skeleton-card"></div>
@@ -35,6 +37,7 @@ async function bootstrap() {
   document.getElementById('module-title').textContent = module.title;
   document.getElementById('subject-name').textContent = `Subject: ${module.subjects?.name || 'General'}`;
   setupQuizGuidanceInput(module.id);
+  setupQuestionCountInput();
   await loadChat(authUser.id, module.id);
 }
 
@@ -67,6 +70,28 @@ function quizGuidanceStorageKey(moduleId) {
 
 function sanitizeQuizGuidance(value) {
   return String(value || '').slice(0, MAX_QUIZ_GUIDANCE_LENGTH);
+}
+
+function sanitizeQuestionCount(value) {
+  const parsed = Number.parseInt(String(value || '').trim(), 10);
+  if (!Number.isFinite(parsed)) return 10;
+  return Math.min(MAX_QUESTION_COUNT, Math.max(MIN_QUESTION_COUNT, parsed));
+}
+
+function setupQuestionCountInput() {
+  const el = document.getElementById('question-count');
+  if (!el) return;
+
+  el.value = String(sanitizeQuestionCount(el.value));
+  el.addEventListener('input', () => {
+    const raw = String(el.value || '').trim();
+    if (!raw) return;
+    el.value = String(sanitizeQuestionCount(raw));
+  });
+
+  el.addEventListener('blur', () => {
+    el.value = String(sanitizeQuestionCount(el.value));
+  });
 }
 
 function setupQuizGuidanceInput(moduleId) {
@@ -319,7 +344,11 @@ document.getElementById('start-practice').addEventListener('click', async () => 
   if (!authUser) return;
 
   const module = JSON.parse(window.localStorage.getItem('prelab_module') || '{}');
-  const selectedQuestionCount = Number(document.getElementById('question-count').value || 10);
+  const questionCountInput = document.getElementById('question-count');
+  const selectedQuestionCount = sanitizeQuestionCount(questionCountInput?.value || 10);
+  if (questionCountInput) {
+    questionCountInput.value = String(selectedQuestionCount);
+  }
   const quizGuidance = sanitizeQuizGuidance(document.getElementById('quiz-guidance')?.value || '');
   try {
     setQuizLoading(true, 'Module is still creating your quiz. Please wait...');

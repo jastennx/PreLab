@@ -142,6 +142,16 @@
   }
 
   function initTheme() {
+    const path = String(window.location.pathname || '').toLowerCase();
+    const isHomePage =
+      path === '/' ||
+      path.endsWith('/home') ||
+      path.endsWith('/home.html') ||
+      path.includes('/pages/home');
+
+    document.body.classList.toggle('page-home', isHomePage);
+    document.body.classList.toggle('has-global-grid', !isHomePage);
+
     applyColor(getSavedColor());
     applyGlobalPrefs();
     wireInternalLinks();

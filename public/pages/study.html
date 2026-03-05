@@ -9,146 +9,119 @@
   <link rel="stylesheet" href="./theme.css" />
 </head>
 <body>
-  <!-- Decorative background orbs -->
-  <div class="bg-orb bg-orb--1"></div>
-  <div class="bg-orb bg-orb--2"></div>
-  <div class="bg-orb bg-orb--3"></div>
+  <div class="bg-mesh"></div>
+  <div class="bg-glow bg-glow--one"></div>
+  <div class="bg-glow bg-glow--two"></div>
 
-  <!-- Top bar -->
   <header class="topbar">
-    <div class="brand">
+    <a href="/pages/dashboard" class="brand" aria-label="PreLab dashboard">
       <img class="brand-logo" src="../assets/prelab-logo.png" alt="PreLab logo" />
-    </div>
-    <div class="actions">
-      <a href="/pages/dashboard" class="topbar-link">
+    </a>
+
+    <nav class="top-actions" aria-label="Main actions">
+      <a href="/pages/dashboard" class="nav-chip">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
         Dashboard
       </a>
-      <a href="/pages/settings" class="topbar-link" title="Settings">
+      <a href="/pages/settings" class="nav-chip" title="Settings">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
       </a>
       <button id="logout-btn">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         Logout
       </button>
-    </div>
+    </nav>
   </header>
 
-  <!-- Module info toolbar -->
-  <div class="module-toolbar">
-    <div class="module-info">
-      <h1 id="module-title">Module</h1>
-      <span class="divider-dot"></span>
-      <span id="subject-name" class="subject-label">Subject: General</span>
-    </div>
-    <div class="toolbar-actions">
-      <button id="generate-explanation" class="btn-outline">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        Generate Explanation
-      </button>
-      <p id="explanation-status" class="status-pill" aria-live="polite"></p>
-    </div>
-  </div>
-
-  <main class="workspace">
-
-    <!-- Two-column grid: Explanation + Quiz -->
-    <div class="study-grid">
-
-      <!-- LEFT — Explanation card -->
-      <div id="explanation-card" class="explanation-card compact">
-        <div class="card-head">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-          <h3>Explanation</h3>
-        </div>
-        <p id="explanation-hint" class="hint-text">Click "Generate Explanation" above to create an AI-powered study guide for this module.</p>
-        <div class="explanation-body">
-          <div class="exp-section">
-            <h4>Summary</h4>
-            <p id="summary"></p>
-          </div>
-          <div class="exp-section">
-            <h4>Key Points</h4>
-            <ul id="key-points"></ul>
-          </div>
-          <div class="exp-section">
-            <h4>Study Tips</h4>
-            <ul id="study-tips"></ul>
-          </div>
-        </div>
+  <main class="study-shell">
+    <section class="hero-panel reveal">
+      <div>
+        <p class="eyebrow">Study workspace</p>
+        <h1 id="module-title">Module</h1>
+        <p id="subject-name" class="hero-subject">Subject: General</p>
       </div>
+      <div class="hero-actions">
+        <button id="generate-explanation" class="btn-accent">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Generate Explanation
+        </button>
+        <p id="explanation-status" class="status-pill" aria-live="polite"></p>
+      </div>
+    </section>
 
-      <!-- RIGHT — Quiz configuration -->
-      <div class="quiz-config">
-        <div class="card-head">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          <h3>Practice Quiz</h3>
+    <section class="content-grid">
+      <article id="explanation-card" class="panel explanation-card compact reveal">
+        <div class="panel-head">
+          <h2>Explanation</h2>
+          <span class="panel-tag">AI guide</span>
+        </div>
+        <p id="explanation-hint" class="hint-text">Generate your explanation to get a summary, key points, and practical tips.</p>
+        <div class="explanation-body">
+          <section class="exp-block">
+            <h3>Summary</h3>
+            <p id="summary"></p>
+          </section>
+          <section class="exp-block">
+            <h3>Key points</h3>
+            <ul id="key-points"></ul>
+          </section>
+          <section class="exp-block">
+            <h3>Study tips</h3>
+            <ul id="study-tips"></ul>
+          </section>
+        </div>
+      </article>
+
+      <aside class="panel quiz-config reveal">
+        <div class="panel-head">
+          <h2>Practice Quiz</h2>
+          <span class="panel-tag">Custom</span>
         </div>
 
-        <div class="config-field">
-          <label for="quiz-guidance">Quiz guidance <span class="opt">(optional)</span></label>
-          <textarea id="quiz-guidance" rows="3" maxlength="600" placeholder="e.g. Focus on chapter 3, avoid true/false..."></textarea>
-        </div>
+        <label for="quiz-guidance">Quiz guidance <span class="opt">optional</span></label>
+        <textarea id="quiz-guidance" rows="5" maxlength="600" placeholder="Example: focus on chapter 2, include scenario questions."></textarea>
 
-        <div class="config-row">
-          <div class="config-field config-field--inline">
+        <div class="quiz-footer">
+          <div class="field-inline">
             <label for="question-count">Questions</label>
-            <select id="question-count">
-              <option value="5">5</option>
-              <option value="10" selected>10</option>
-              <option value="15">15</option>
-              <option value="20">20</option>
-              <option value="25">25</option>
-              <option value="30">30</option>
-            </select>
+            <input id="question-count" type="number" min="1" max="100" step="1" value="10" inputmode="numeric" />
           </div>
-          <button id="start-practice" class="btn-primary">
+          <button id="start-practice" class="btn-cta">
             <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             Generate Practice Quiz
           </button>
         </div>
         <p id="quiz-status" class="status-pill" aria-live="polite"></p>
-      </div>
-
-    </div>
-
-    <!-- How it works strip -->
-    <section class="workflow-strip">
-      <h2 class="strip-title">How It Works</h2>
-      <div class="workflow-steps">
-        <div class="step-card">
-          <div class="step-icon">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          </div>
-          <h3>1. Generate Explanation</h3>
-          <p>Get an AI-powered summary, key points, and study tips based on your uploaded material.</p>
-        </div>
-        <div class="step-card">
-          <div class="step-icon">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          </div>
-          <h3>2. Ask Questions</h3>
-          <p>Use the chat assistant to clarify concepts, get examples, or dive deeper into topics.</p>
-        </div>
-        <div class="step-card">
-          <div class="step-icon">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          </div>
-          <h3>3. Take a Quiz</h3>
-          <p>Generate a practice quiz to test your understanding and get instant feedback.</p>
-        </div>
-      </div>
+      </aside>
     </section>
 
+    <section class="quick-steps reveal">
+      <h2>How It Works</h2>
+      <div class="steps-grid">
+        <article class="step-card">
+          <span class="step-number">01</span>
+          <h3>Generate explanation</h3>
+          <p>Build a concise module guide before you start practice.</p>
+        </article>
+        <article class="step-card">
+          <span class="step-number">02</span>
+          <h3>Ask the assistant</h3>
+          <p>Open chat and request examples, clarifications, or quick checks.</p>
+        </article>
+        <article class="step-card">
+          <span class="step-number">03</span>
+          <h3>Run a quiz</h3>
+          <p>Test your understanding with customizable question sets.</p>
+        </article>
+      </div>
+    </section>
   </main>
 
-  <!-- Floating chat bubble -->
   <button class="chat-fab" id="chat-fab" aria-label="Open study chat">
     <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
   </button>
 
-  <!-- Chat drawer -->
-  <div class="chat-drawer" id="chat-drawer">
+  <section class="chat-drawer" id="chat-drawer" aria-label="Study chat panel">
     <div class="drawer-head">
       <h2>Study Chat</h2>
       <p id="chat-status" class="chat-status" aria-live="polite"></p>
@@ -169,7 +142,7 @@
         Send
       </button>
     </form>
-  </div>
+  </section>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -180,7 +153,6 @@
   <script src="../js/theme.js"></script>
   <script src="../js/study.js"></script>
   <script>
-    // Chat bubble toggle
     const fab = document.getElementById('chat-fab');
     const drawer = document.getElementById('chat-drawer');
     const closeBtn = document.getElementById('chat-drawer-close');

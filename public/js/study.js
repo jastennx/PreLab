@@ -51,7 +51,7 @@ async function resolveActiveModule(userId) {
 
   try {
     const details = await window.api.get(
-      `/modules/${encodeURIComponent(moduleId)}?userId=${encodeURIComponent(userId)}`
+      `/modules/${encodeURIComponent(moduleId)}`
     );
     if (details?.module?.id) {
       window.localStorage.setItem('prelab_module', JSON.stringify(details.module));

@@ -1,4 +1,6 @@
 const user = JSON.parse(window.localStorage.getItem('prelab_user') || '{}');
+let currentVisibility = 'private';
+
 const MODULE_LOADING_SKELETON = `
   <div class="skeleton-grid loading-shell">
     <div class="skeleton-card"></div>
@@ -53,7 +55,50 @@ async function bootstrap() {
     const nextKnownUsers = Array.isArray(knownUsers) ? [...knownUsers, authUser.id] : [authUser.id];
     window.localStorage.setItem('prelab_known_users', JSON.stringify(nextKnownUsers));
   }
+
+  setupVisibilityToggle();
+  loadCategories();
   await loadModules(authUser.id);
+  initCommunitySection(authUser.id);
+}
+
+async function loadCategories() {
+  try {
+    const data = await window.api.get('/modules/categories');
+    const select = document.getElementById('module-category');
+    if (!select || !data.categories) return;
+    for (const cat of data.categories) {
+      const opt = document.createElement('option');
+      opt.value = cat;
+      opt.textContent = cat;
+      select.appendChild(opt);
+    }
+  } catch (_e) { /* categories will just be empty */ }
+}
+
+function setupVisibilityToggle() {
+  const privateBtn = document.getElementById('vis-private-btn');
+  const publicBtn = document.getElementById('vis-public-btn');
+  const hint = document.getElementById('vis-hint');
+  const categoryField = document.getElementById('category-field');
+
+  function setVisibility(vis) {
+    currentVisibility = vis;
+    if (vis === 'public') {
+      publicBtn.classList.add('vis-btn--active');
+      privateBtn.classList.remove('vis-btn--active');
+      hint.textContent = 'This module will appear in the public community library.';
+      categoryField.style.display = '';
+    } else {
+      privateBtn.classList.add('vis-btn--active');
+      publicBtn.classList.remove('vis-btn--active');
+      hint.textContent = 'Only you can see this module.';
+      categoryField.style.display = 'none';
+    }
+  }
+
+  privateBtn.addEventListener('click', () => setVisibility('private'));
+  publicBtn.addEventListener('click', () => setVisibility('public'));
 }
 
 async function loadModules(userId) {
@@ -94,11 +139,25 @@ async function loadModules(userId) {
     for (const module of modules) {
       const latestResult = latestResultByModule.get(module.id);
       const scoreText = latestResult ? `${latestResult.correct}/${latestResult.total}` : null;
+      const isPublic = module.is_public;
+      const visBadge = isPublic
+        ? `<span class="vis-badge vis-badge--public" title="Public · ${module.category || 'No category'}">
+             <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+             Public
+           </span>`
+        : `<span class="vis-badge vis-badge--private" title="Private">
+             <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+             Private
+           </span>`;
       const item = document.createElement('article');
       item.className = 'module-item';
       item.innerHTML = `
-        <h3>${module.title}</h3>
+        <div class="module-head-row">
+          <h3>${module.title}</h3>
+          ${visBadge}
+        </div>
         <p class="module-meta">Subject: ${module.subjects?.name || 'General'} | Status: ${module.status}</p>
+        ${isPublic && module.category ? `<p class="module-category-tag">${module.category}</p>` : ''}
         ${scoreText ? `<p class="module-score">Total Score: <strong>${scoreText}</strong></p>` : ''}
         <div class="module-actions">
           <button class="start-btn" data-action="start" data-id="${module.id}">Start</button>
@@ -107,6 +166,9 @@ async function loadModules(userId) {
               ? `<button class="summary-btn" data-action="summary" data-result-id="${latestResult.resultId}">View Summary</button>`
               : ''
           }
+          <button class="vis-toggle-btn" data-action="toggle-vis" data-id="${module.id}" data-public="${isPublic}">
+            ${isPublic ? 'Make Private' : 'Make Public'}
+          </button>
           <button class="del-btn" data-action="delete" data-id="${module.id}">Delete</button>
         </div>
       `;
@@ -132,6 +194,49 @@ async function loadModules(userId) {
             if (!shouldDelete) return;
             await window.api.del(`/modules/${moduleId}?userId=${encodeURIComponent(userId)}`);
             await loadModules(userId);
+            return;
+          }
+
+          if (action === 'toggle-vis') {
+            const isCurrentlyPublic = btn.dataset.public === 'true';
+            if (isCurrentlyPublic) {
+              await window.api.patch(`/modules/${moduleId}/visibility`, {
+                userId,
+                isPublic: false
+              });
+              await loadModules(userId);
+            } else {
+              const cats = await window.api.get('/modules/categories');
+              const categoryList = cats.categories || [];
+              const catHtml = categoryList.map(c => `<option value="${c}">${c}</option>`).join('');
+              const result = await window.prelabDialog.confirm(
+                `<div style="text-align:left">
+                  <p style="margin-bottom:0.7rem;color:var(--ink-soft)">Choose a category for this public module:</p>
+                  <select id="swal-category" style="width:100%;padding:0.55rem 0.75rem;border-radius:10px;border:1px solid var(--border);background:rgba(14,4,30,0.6);color:var(--ink);font-family:inherit;font-size:0.88rem">
+                    <option value="">Select category...</option>
+                    ${catHtml}
+                  </select>
+                </div>`,
+                {
+                  title: 'Make Public',
+                  icon: 'info',
+                  confirmButtonText: 'Publish',
+                  html: true
+                }
+              );
+              if (!result) return;
+              const selectedCat = document.getElementById('swal-category')?.value || '';
+              if (!selectedCat) {
+                await window.prelabDialog.alert('Please select a category to publish.', { title: 'Category Required', icon: 'warning' });
+                return;
+              }
+              await window.api.patch(`/modules/${moduleId}/visibility`, {
+                userId,
+                isPublic: true,
+                category: selectedCat
+              });
+              await loadModules(userId);
+            }
             return;
           }
 
@@ -250,13 +355,20 @@ document.getElementById('module-form').addEventListener('submit', async (event) 
     subjectName: document.getElementById('subject-name').value.trim(),
     moduleTitle: document.getElementById('module-title').value.trim(),
     studyGoal: document.getElementById('study-goal').value.trim(),
-    materialText: document.getElementById('material-text').value.trim()
+    materialText: document.getElementById('material-text').value.trim(),
+    isPublic: currentVisibility === 'public',
+    category: currentVisibility === 'public' ? document.getElementById('module-category').value : ''
   };
   const fileInput = document.getElementById('material-file');
   const selectedFile = fileInput.files?.[0] || null;
 
   if (!payload.materialText && !selectedFile) {
     message.textContent = 'Add study material by uploading PDF/DOCX or pasting text.';
+    return;
+  }
+
+  if (payload.isPublic && !payload.category) {
+    message.textContent = 'Please select a category for public modules.';
     return;
   }
 
@@ -289,6 +401,129 @@ document.getElementById('material-file').addEventListener('change', (event) => {
 document.getElementById('logout-btn').addEventListener('click', async () => {
   await window.confirmAndSignOut();
 });
+
+/* ═══════════════════════════════════
+   COMMUNITY REVIEWERS (Dashboard)
+   ═══════════════════════════════════ */
+let activeCommunityCategory = '';
+
+function timeAgo(dateStr) {
+  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (seconds < 60) return 'just now';
+  const mins = Math.floor(seconds / 60);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return `${days}d ago`;
+  return `${Math.floor(days / 30)}mo ago`;
+}
+
+async function loadCommunityModules(userId, category) {
+  const grid = document.getElementById('community-list');
+  if (!grid) return;
+
+  grid.innerHTML = MODULE_LOADING_SKELETON;
+
+  try {
+    const url = category
+      ? `/modules/public?category=${encodeURIComponent(category)}`
+      : '/modules/public';
+    const data = await window.api.get(url);
+    const modules = (data.modules || []).filter(m => m.user_id !== userId);
+
+    if (!modules.length) {
+      grid.innerHTML = `
+        <div class="empty-state">
+          <strong>No community reviewers${category ? ` in ${category}` : ''}</strong>
+          Public modules shared by other users will appear here.
+        </div>`;
+      return;
+    }
+
+    grid.innerHTML = '';
+    for (const mod of modules) {
+      const authorName = mod.users?.full_name || 'Anonymous';
+      const initial = authorName.charAt(0).toUpperCase();
+      const item = document.createElement('article');
+      item.className = 'module-item community-module-item';
+      item.innerHTML = `
+        <div class="module-head-row">
+          <h3>${mod.title}</h3>
+          <span class="vis-badge vis-badge--public">
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            ${mod.category || 'Public'}
+          </span>
+        </div>
+        <p class="module-meta">Subject: ${mod.subjects?.name || 'General'} | ${timeAgo(mod.created_at)}</p>
+        ${mod.study_goal ? `<p class="module-meta" style="font-style:italic">${mod.study_goal}</p>` : ''}
+        <div class="cc-author-dash">
+          <span class="cc-avatar-sm">${initial}</span>
+          <span class="cc-name-sm">${authorName}</span>
+        </div>
+        <div class="module-actions">
+          <button class="start-btn" data-action="start-community" data-id="${mod.id}">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Study This
+          </button>
+        </div>
+      `;
+      grid.appendChild(item);
+    }
+
+    grid.querySelectorAll('[data-action="start-community"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const moduleId = btn.dataset.id;
+        btn.disabled = true;
+        try {
+          const details = await window.api.get(
+            `/modules/${moduleId}?userId=${encodeURIComponent(userId)}`
+          );
+          window.localStorage.removeItem('prelab_quiz');
+          window.localStorage.removeItem('prelab_result');
+          window.localStorage.setItem('prelab_module', JSON.stringify(details.module));
+          goTo(`/pages/study?moduleId=${encodeURIComponent(moduleId)}`);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    });
+  } catch (error) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <strong>Could not load community reviewers</strong>
+        ${error.message}
+      </div>`;
+  }
+}
+
+async function initCommunitySection(userId) {
+  const tabsContainer = document.getElementById('community-tabs');
+  if (!tabsContainer) return;
+
+  try {
+    const data = await window.api.get('/modules/categories');
+    const categories = data.categories || [];
+    for (const cat of categories) {
+      const btn = document.createElement('button');
+      btn.className = 'comm-tab';
+      btn.dataset.category = cat;
+      btn.textContent = cat;
+      tabsContainer.appendChild(btn);
+    }
+
+    tabsContainer.addEventListener('click', (e) => {
+      const tab = e.target.closest('.comm-tab');
+      if (!tab) return;
+      tabsContainer.querySelectorAll('.comm-tab').forEach(t => t.classList.remove('comm-tab--active'));
+      tab.classList.add('comm-tab--active');
+      activeCommunityCategory = tab.dataset.category;
+      loadCommunityModules(userId, activeCommunityCategory);
+    });
+  } catch (_e) { /* just show "All" */ }
+
+  await loadCommunityModules(userId, '');
+}
 
 bootstrap();
 

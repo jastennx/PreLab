@@ -39,6 +39,8 @@ create table public.modules (
   source_text text not null,
   study_goal text,
   status text not null default 'new',
+  is_public boolean not null default false,
+  category text,
   created_at timestamptz not null default now()
 );
 
@@ -82,6 +84,7 @@ create table public.chat_messages (
 );
 
 create index idx_modules_user_id on public.modules(user_id);
+create index idx_modules_public on public.modules(is_public) where is_public = true;
 create index idx_quizzes_module_id on public.quizzes(module_id);
 create index idx_results_user_id on public.results(user_id);
 create index idx_chat_user_module on public.chat_messages(user_id, module_id);
@@ -128,6 +131,10 @@ for select using (true);
 drop policy if exists "modules_owner_all" on public.modules;
 create policy "modules_owner_all" on public.modules
 for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "modules_public_read" on public.modules;
+create policy "modules_public_read" on public.modules
+for select using (is_public = true);
 
 drop policy if exists "quizzes_owner_all" on public.quizzes;
 create policy "quizzes_owner_all" on public.quizzes

@@ -258,6 +258,33 @@ body {
   .hero-title { font-size: .95rem; }
 }
 
+@media (max-width: 480px) {
+  .topbar { height: 48px; padding: 0 0.65rem; }
+  .brand-logo { height: 26px; }
+  .actions a, .actions button, #logout-btn { padding: 0.3rem 0.5rem; font-size: 0.7rem; }
+
+  .score-hero { padding: 1.2rem 0.65rem 1rem; }
+  .hero-inner { gap: 0.45rem; }
+  .hero-title { font-size: 0.85rem; }
+  .score-ring { width: 80px; height: 80px; }
+  .score-value { font-size: 1.3rem; }
+  .correct-label { font-size: 0.78rem; }
+  .encouragement { font-size: 0.8rem; }
+
+  .results-content { padding: 0.75rem 0.65rem 2rem; gap: 0.65rem; }
+  .panel-head h2 { font-size: 0.82rem; }
+  .review-item { padding: 0.65rem 0.75rem; }
+  .review-item strong { font-size: 0.72rem; }
+  .review-question { font-size: 0.78rem; }
+  .review-item p { font-size: 0.72rem; }
+
+  .tips-card { padding: 0.75rem 0.85rem; }
+  .tips-list li { font-size: 0.74rem; padding: 0.35rem 0.5rem 0.35rem 1.1rem; }
+
+  .btn-primary { padding: 0.5rem 0.8rem; font-size: 0.78rem; }
+  .btn-secondary { padding: 0.48rem 0.8rem; font-size: 0.78rem; }
+}
+
 /* ═════════ ANIMATIONS ═════════ */
 @keyframes spin { to { transform: rotate(360deg); } }
 

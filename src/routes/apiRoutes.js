@@ -186,7 +186,66 @@ router.get('/public-config', (_req, res) => {
   });
 });
 
+const ALLOWED_CATEGORIES = [
+  'Science', 'Mathematics', 'Engineering', 'IT & Computer Science',
+  'Business', 'Arts & Humanities', 'Health & Medicine', 'Law',
+  'Education', 'Social Sciences', 'Other'
+];
+
+router.get('/modules/public', async (_req, res) => {
+  try {
+    const category = (_req.query.category || '').trim();
+    let query = supabaseAdmin
+      .from('modules')
+      .select('id,title,category,status,created_at,study_goal,user_id,subjects(name),users(full_name)')
+      .eq('is_public', true)
+      .order('created_at', { ascending: false })
+      .limit(60);
+
+    if (category && ALLOWED_CATEGORIES.includes(category)) {
+      query = query.eq('category', category);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    res.json({ modules: data || [] });
+  } catch (error) {
+    fail(res, error);
+  }
+});
+
+router.get('/modules/categories', (_req, res) => {
+  res.json({ categories: ALLOWED_CATEGORIES });
+});
+
 router.use(requireAuthenticatedUser);
+
+async function resolveAccessibleModule(moduleId, userId, selectCols = '*, subjects(name)') {
+  const { data: ownModule, error: ownError } = await supabaseAdmin
+    .from('modules')
+    .select(selectCols)
+    .eq('id', moduleId)
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (ownError) throw ownError;
+  if (ownModule) return ownModule;
+
+  const { data: pubModule, error: pubError } = await supabaseAdmin
+    .from('modules')
+    .select(selectCols)
+    .eq('id', moduleId)
+    .eq('is_public', true)
+    .maybeSingle();
+
+  if (pubError) throw pubError;
+  if (!pubModule) {
+    const err = new Error('Module not found');
+    err.statusCode = 404;
+    throw err;
+  }
+  return pubModule;
+}
 
 router.post('/auth/sync-user', async (req, res) => {
   try {
@@ -265,6 +324,10 @@ router.post('/modules', upload.single('materialFile'), async (req, res) => {
 
     if (subjectError) throw subjectError;
 
+    const isPublic = req.body.isPublic === true || req.body.isPublic === 'true';
+    const rawCategory = (req.body.category || '').trim();
+    const category = isPublic && ALLOWED_CATEGORIES.includes(rawCategory) ? rawCategory : null;
+
     const { data: module, error: moduleError } = await supabaseAdmin
       .from('modules')
       .insert({
@@ -273,7 +336,9 @@ router.post('/modules', upload.single('materialFile'), async (req, res) => {
         title: moduleTitle,
         source_text: sourceText,
         study_goal: studyGoal || null,
-        status: 'new'
+        status: 'new',
+        is_public: isPublic,
+        category: category
       })
       .select('*')
       .single();
@@ -292,7 +357,7 @@ router.get('/modules', async (req, res) => {
 
     const { data, error } = await supabaseAdmin
       .from('modules')
-      .select('id,title,status,created_at,study_goal,subjects(name)')
+      .select('id,title,status,created_at,study_goal,is_public,category,subjects(name)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 
@@ -306,19 +371,34 @@ router.get('/modules', async (req, res) => {
 router.get('/modules/:id', async (req, res) => {
   try {
     const userId = resolveAuthenticatedUserId(req);
-
     const moduleId = req.params.id;
+    const module = await resolveAccessibleModule(moduleId, userId);
+    res.json({ module });
+  } catch (error) {
+    fail(res, error, error.statusCode || 404);
+  }
+});
+
+router.patch('/modules/:id/visibility', async (req, res) => {
+  try {
+    const userId = resolveAuthenticatedUserId(req);
+    const moduleId = req.params.id;
+    const isPublic = req.body.isPublic === true || req.body.isPublic === 'true';
+    const rawCategory = (req.body.category || '').trim();
+    const category = isPublic && ALLOWED_CATEGORIES.includes(rawCategory) ? rawCategory : null;
+
     const { data, error } = await supabaseAdmin
       .from('modules')
-      .select('*, subjects(name)')
+      .update({ is_public: isPublic, category })
       .eq('id', moduleId)
       .eq('user_id', userId)
+      .select('id,is_public,category')
       .single();
 
     if (error) throw error;
     res.json({ module: data });
   } catch (error) {
-    fail(res, error, error.statusCode || 404);
+    fail(res, error, error.statusCode || 500);
   }
 });
 
@@ -348,14 +428,7 @@ router.post('/study/explain', async (req, res) => {
     const { moduleId, topic } = req.body;
     if (!moduleId) return res.status(400).json({ error: 'moduleId is required' });
 
-    const { data: module, error } = await supabaseAdmin
-      .from('modules')
-      .select('id,title,source_text,subjects(name)')
-      .eq('id', moduleId)
-      .eq('user_id', userId)
-      .single();
-
-    if (error) throw error;
+    const module = await resolveAccessibleModule(moduleId, userId, 'id,title,source_text,subjects(name)');
 
     const explanation = await generateExplanation({
       moduleTitle: module.title,
@@ -384,9 +457,13 @@ router.post('/practice/generate', async (req, res) => {
       .select('id,title,source_text,subjects(name)')
       .eq('id', moduleId)
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
+    let resolvedModule = module;
     if (moduleError) throw moduleError;
+    if (!resolvedModule) {
+      resolvedModule = await resolveAccessibleModule(moduleId, userId, 'id,title,source_text,subjects(name)');
+    }
 
     const requestedCount = Number(questionCount || 10);
     const safeCount = Number.isFinite(requestedCount)
@@ -430,9 +507,9 @@ router.post('/practice/generate', async (req, res) => {
     }
 
     const quiz = await generateQuiz({
-      moduleTitle: module.title,
-      subjectName: module.subjects?.name || 'General',
-      materialText: module.source_text,
+      moduleTitle: resolvedModule.title,
+      subjectName: resolvedModule.subjects?.name || 'General',
+      materialText: resolvedModule.source_text,
       count: safeCount,
       quizGuidance
     });
@@ -491,17 +568,10 @@ router.post('/practice/submit', async (req, res) => {
     }
     const evaluated = evaluateQuiz({ questions, userAnswers: answers });
 
-    const { data: module, error: moduleError } = await supabaseAdmin
-      .from('modules')
-      .select('title')
-      .eq('id', moduleId)
-      .eq('user_id', userId)
-      .single();
-
-    if (moduleError) throw moduleError;
+    const submitModule = await resolveAccessibleModule(moduleId, userId, 'title');
 
     const aiFeedback = await generateFeedback({
-      moduleTitle: module.title,
+      moduleTitle: submitModule.title,
       score: evaluated.score,
       weakAreas: evaluated.weakAreas,
       review: evaluated.review
@@ -605,14 +675,7 @@ router.post('/chat', async (req, res) => {
       return res.status(400).json({ error: 'moduleId and message are required' });
     }
 
-    const { data: module, error: moduleError } = await supabaseAdmin
-      .from('modules')
-      .select('id,title,source_text,subjects(name)')
-      .eq('id', moduleId)
-      .eq('user_id', userId)
-      .single();
-
-    if (moduleError) throw moduleError;
+    const module = await resolveAccessibleModule(moduleId, userId, 'id,title,source_text,subjects(name)');
 
     const reply = await chatTutor({
       moduleTitle: module.title,
@@ -650,14 +713,7 @@ router.get('/chat/:moduleId', async (req, res) => {
     const userId = resolveAuthenticatedUserId(req);
     const moduleId = req.params.moduleId;
 
-    const { data: module, error: moduleError } = await supabaseAdmin
-      .from('modules')
-      .select('id')
-      .eq('id', moduleId)
-      .eq('user_id', userId)
-      .maybeSingle();
-    if (moduleError) throw moduleError;
-    if (!module) return res.status(404).json({ error: 'Module not found' });
+    await resolveAccessibleModule(moduleId, userId, 'id');
 
     const { data, error } = await supabaseAdmin
       .from('chat_messages')

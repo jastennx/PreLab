@@ -64,6 +64,15 @@ window.api = {
     });
     return parseApiResponse(res);
   },
+  async patch(path, body) {
+    const headers = await buildAuthHeaders({ 'Content-Type': 'application/json' });
+    const res = await fetch(`${window.PRELAB_CONFIG.apiBase}${path}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify(body)
+    });
+    return parseApiResponse(res);
+  },
   async del(path) {
     const headers = await buildAuthHeaders();
     const res = await fetch(`${window.PRELAB_CONFIG.apiBase}${path}`, { method: 'DELETE', headers });

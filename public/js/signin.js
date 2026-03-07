@@ -179,6 +179,12 @@ async function continueIfAuthenticated() {
 
   await syncUserRecord(user, user.user_metadata?.full_name || user.user_metadata?.name || '');
   persistAuthenticatedUser(user);
+
+  const redirectParams = new URLSearchParams(window.location.search);
+  if (redirectParams.get('redirect') === 'study' && redirectParams.get('moduleId')) {
+    goTo(`/pages/study?moduleId=${encodeURIComponent(redirectParams.get('moduleId'))}`, true);
+    return;
+  }
   goTo('/pages/dashboard', true);
 }
 
@@ -367,7 +373,13 @@ authForm.addEventListener('submit', async (event) => {
     const user = data.user;
     await syncUserRecord(user, fullName);
     persistAuthenticatedUser(user);
-    goTo('/pages/dashboard');
+
+    const signinParams = new URLSearchParams(window.location.search);
+    if (signinParams.get('redirect') === 'study' && signinParams.get('moduleId')) {
+      goTo(`/pages/study?moduleId=${encodeURIComponent(signinParams.get('moduleId'))}`);
+    } else {
+      goTo('/pages/dashboard');
+    }
   } catch (error) {
     authError.textContent = getAuthErrorMessage(error);
     if (Number(error?.status || 0) === 429 || `${error?.message || ''}`.toLowerCase().includes('rate limit')) {

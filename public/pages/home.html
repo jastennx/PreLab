@@ -34,20 +34,20 @@
   </header>
 
   <main class="home-wrap">
-    <section class="hero">
+    <section class="hero" data-reveal="fade-up">
       <div class="hero-content">
-        <p class="badge"><span class="badge-dot"></span>AI-Powered Learning Platform</p>
-        <h1>Learn Smarter,<br/>Feel <span class="gradient-text">Excited</span> to Study</h1>
-        <p class="subtitle">
+        <p class="badge" data-reveal="fade-up" data-delay="1"><span class="badge-dot"></span>AI-Powered Learning Platform</p>
+        <h1 data-reveal="fade-up" data-delay="2">Learn Smarter,<br/>Feel <span class="gradient-text">Excited</span> to Study</h1>
+        <p class="subtitle" data-reveal="fade-up" data-delay="3">
           Turn notes into guided explanations, lively quizzes, and instant feedback that
           actually helps you improve, not just memorize.
         </p>
-        <div class="hero-pills">
+        <div class="hero-pills" data-reveal="fade-up" data-delay="4">
           <span>Adaptive quizzes</span>
           <span>AI tutor chat</span>
           <span>Fast feedback loops</span>
         </div>
-        <div class="hero-actions">
+        <div class="hero-actions" data-reveal="fade-up" data-delay="5">
           <button id="show-login-hero" class="btn btn--primary btn--lg">
             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
             Sign in
@@ -58,7 +58,7 @@
             Watch Demo
           </button>
         </div>
-        <div class="hero-highlight">
+        <div class="hero-highlight" data-reveal="fade-up" data-delay="6">
           <p class="highlight-title">Built for momentum</p>
           <p class="highlight-copy">
             Upload a module, generate a practice set, and review weak spots in one smooth flow.
@@ -67,24 +67,24 @@
       </div>
     </section>
 
-    <section class="features">
-      <h2 class="section-title">A study flow that feels focused and motivating</h2>
+    <section class="features" data-reveal="fade-up">
+      <h2 class="section-title" data-reveal="fade-up">A study flow that feels focused and motivating</h2>
       <div class="feature-grid">
-        <article class="feature-card">
+        <article class="feature-card" data-reveal="fade-up" data-delay="1">
           <div class="feature-icon">
             <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 1 5 5c0 2.76-5 8-5 8S7 9.76 7 7a5 5 0 0 1 5-5z"/><circle cx="12" cy="7" r="1.5"/><path d="M3 20h18"/><path d="M5.5 16l2-4"/><path d="M18.5 16l-2-4"/></svg>
           </div>
           <h3>Understand First</h3>
           <p>Break dense lessons into clean explanations with key points and practical study tips.</p>
         </article>
-        <article class="feature-card">
+        <article class="feature-card" data-reveal="fade-up" data-delay="2">
           <div class="feature-icon">
             <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
           </div>
           <h3>Practice With Variety</h3>
           <p>Generate custom quizzes by difficulty, question count, and topic focus in seconds.</p>
         </article>
-        <article class="feature-card">
+        <article class="feature-card" data-reveal="fade-up" data-delay="3">
           <div class="feature-icon">
             <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
           </div>
@@ -93,9 +93,28 @@
         </article>
       </div>
     </section>
+
+    <!-- Community Reviewers -->
+    <section class="community-section" id="community-section" data-reveal="fade-up">
+      <h2 class="section-title" data-reveal="fade-up">Community Reviewers</h2>
+      <p class="community-subtitle" data-reveal="fade-up" data-delay="1">Browse public study modules shared by the community</p>
+
+      <div class="category-tabs" id="category-tabs" data-reveal="fade-up" data-delay="2">
+        <button class="cat-tab cat-tab--active" data-category="">All</button>
+      </div>
+
+      <div class="community-grid" id="community-grid">
+        <div class="community-loading">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <footer class="site-footer">
+  <footer class="site-footer" data-reveal="fade-up">
     <p>&copy; 2026 PreLab. Built for learners, powered by AI.</p>
   </footer>
 
@@ -110,6 +129,8 @@
     </div>
   </div>
 
+  <script src="/js/config.js"></script>
+  <script src="/js/api.js"></script>
   <script src="/js/theme.js"></script>
   <script src="/js/home.js"></script>
 </body>

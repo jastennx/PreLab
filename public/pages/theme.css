@@ -37,17 +37,26 @@ body {
     auto,
     auto,
     auto;
+  background-position:
+    0 0,
+    0 0,
+    8% 0%,
+    92% 5%,
+    50% 55%,
+    30% 80%;
+  animation: ambientBgDrift 80s ease-in-out infinite alternate;
 }
 
 body.page-home {
   --grid-opacity: 0;
 }
 
-.bg-orb--1 {
-  background: hsla(var(--user-accent-h, 260), var(--user-accent-s, 84%), 50%, calc(0.36 * var(--glow-opacity, 1))) !important;
-}
-.bg-orb--2 {
-  background: hsla(var(--user-accent2-h, 290), var(--user-accent2-s, 94%), 55%, calc(0.24 * var(--glow-opacity, 1))) !important;
+.bg-orb,
+.bg-orb--1,
+.bg-orb--2,
+.bg-orb--3 {
+  display: none !important;
+  animation: none !important;
 }
 
 /* Solid-color mode: strip gradients, apply flat bg */
@@ -256,7 +265,6 @@ body.bg-light .option.selected .option-prefix {
   color: #fff !important;
 }
 /* keep bg-orbs subtle on light bg */
-body.bg-light .bg-orb { opacity: 0.12; }
 
 /* ═════════ SKELETON LOADERS ═════════ */
 .skeleton-grid {
@@ -284,6 +292,27 @@ body.bg-light .bg-orb { opacity: 0.12; }
 @keyframes shimmer {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
+}
+
+@keyframes ambientBgDrift {
+  0% {
+    background-position:
+      0 0,
+      0 0,
+      8% 0%,
+      92% 5%,
+      50% 55%,
+      30% 80%;
+  }
+  100% {
+    background-position:
+      0 0,
+      0 0,
+      16% 6%,
+      84% 11%,
+      45% 61%,
+      36% 74%;
+  }
 }
 
 /* ═════════ EMPTY STATE (shared) ═════════ */
@@ -328,5 +357,6 @@ body.bg-light .bg-orb { opacity: 0.12; }
 /* ═════════ REDUCED MOTION ═════════ */
 @media (prefers-reduced-motion: reduce) {
   body { transition: none !important; }
+  body { animation: none !important; }
   .skeleton-card { animation: none !important; }
 }

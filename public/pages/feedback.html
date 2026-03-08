@@ -42,13 +42,17 @@
           <defs>
             <linearGradient id="score-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stop-color="#8b5cf6" />
+              <stop offset="50%" stop-color="#a78bfa" />
               <stop offset="100%" stop-color="#22d3ee" />
             </linearGradient>
           </defs>
           <circle class="score-track" cx="60" cy="60" r="52" />
           <circle id="score-arc" class="score-arc" cx="60" cy="60" r="52" />
         </svg>
-        <span id="score" class="score-value">-</span>
+        <div class="score-inner">
+          <span id="score" class="score-value">-</span>
+          <span class="score-label">Score</span>
+        </div>
       </div>
       <p class="correct-label" data-reveal="fade-up" data-delay="3">Correct: <strong id="correct">-/-</strong></p>
       <p id="encouragement" class="encouragement" data-reveal="fade-up" data-delay="4">Great effort! Review your answers below.</p>

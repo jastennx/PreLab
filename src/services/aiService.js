@@ -313,13 +313,15 @@ async function generateQuiz({ moduleTitle, subjectName, materialText, count = 10
 
 function evaluateQuiz({ questions, userAnswers }) {
   const review = questions.map((q, index) => {
-    const selected = Number(userAnswers[index]);
-    const isCorrect = selected === q.correct_index;
+    const raw = userAnswers[index];
+    const selected = raw === null || raw === undefined ? null : Number(raw);
+    const validSelection = Number.isInteger(selected) && selected >= 0;
+    const isCorrect = validSelection && selected === q.correct_index;
     return {
       question: q.question,
       topic: q.topic || 'General',
-      selected_index: Number.isInteger(selected) ? selected : null,
-      selected_answer: Number.isInteger(selected) ? q.options[selected] : null,
+      selected_index: validSelection ? selected : null,
+      selected_answer: validSelection ? q.options[selected] : null,
       correct_index: q.correct_index,
       correct_answer: q.options[q.correct_index],
       is_correct: isCorrect,

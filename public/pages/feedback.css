@@ -87,9 +87,10 @@ body {
 }
 
 .score-ring {
-  width: 140px; height: 140px;
+  width: 160px; height: 160px;
   position: relative;
   display: grid; place-items: center;
+  filter: drop-shadow(0 0 18px rgba(139,92,246,.25)) drop-shadow(0 0 50px rgba(139,92,246,.10));
 }
 .score-svg {
   width: 100%; height: 100%;
@@ -98,24 +99,33 @@ body {
 }
 .score-track {
   fill: none;
-  stroke: rgba(139,92,246,.12);
-  stroke-width: 8;
+  stroke: rgba(139,92,246,.08);
+  stroke-width: 6;
 }
 .score-arc {
   fill: none;
   stroke: url(#score-gradient);
-  stroke-width: 8;
+  stroke-width: 7;
   stroke-linecap: round;
   stroke-dasharray: 326.73;
   stroke-dashoffset: 326.73;
-  transition: stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1);
+  transition: stroke-dashoffset 1.4s cubic-bezier(.25,.46,.45,.94);
+  filter: drop-shadow(0 0 6px rgba(139,92,246,.45));
+}
+.score-inner {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; gap: .1rem;
 }
 .score-value {
-  position: relative; z-index: 1;
-  font-size: 2.2rem; font-weight: 800;
+  font-size: 2.4rem; font-weight: 800;
   background: linear-gradient(135deg, var(--violet), #22d3ee);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   background-clip: text;
+  line-height: 1;
+}
+.score-label {
+  font-size: .65rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .1em; color: var(--text-3);
 }
 
 .correct-label {

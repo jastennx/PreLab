@@ -468,7 +468,7 @@ a:focus-visible {
 }
 
 @media (max-width: 620px) {
-  .topbar {
+  body.page-practice .topbar {
     position: fixed;
     top: 0;
     left: 0;
@@ -484,7 +484,7 @@ a:focus-visible {
     padding-top: 58px;
   }
 
-  .actions {
+  body.page-practice .actions {
     width: auto;
     margin-left: auto;
     justify-content: flex-end;
@@ -511,9 +511,10 @@ a:focus-visible {
 }
 
 @media (max-width: 480px) {
-  .topbar { padding: 0.5rem 0.6rem; }
-  .brand-logo { height: 26px; }
-  .actions a, .actions button {
+  body.page-practice .topbar { padding: 0.5rem 0.6rem; }
+  body.page-practice .brand-logo { height: 26px; }
+  body.page-practice .actions a,
+  body.page-practice .actions button {
     padding: 0.35rem 0.55rem;
     font-size: 0.7rem;
     white-space: nowrap;

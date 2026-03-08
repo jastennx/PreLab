@@ -5,6 +5,12 @@ const MAX_QUIZ_COUNT = 50;
 const QUIZ_BATCH_SIZE = 25;
 const QUIZ_MATERIAL_LIMIT = 7000;
 const QUIZ_GUIDANCE_LIMIT = 600;
+const DEFAULT_QUIZ_DIFFICULTY_RULE =
+  'Default difficulty (when user does not explicitly request easy/hard): medium-to-hard college level requiring reasoning, not rote recall.';
+const OPTION_QUALITY_RULES =
+  'Answer quality rules: make all options plausible and similar in length/detail. ' +
+  'Never make the correct answer obviously longer, more specific, or structurally different than distractors. ' +
+  'Avoid giveaway patterns like "all of the above" or "none of the above".';
 
 function assertGroqConfig() {
   if (!config.groqApiKey) {
@@ -64,6 +70,40 @@ function buildGuidanceBlock(quizGuidance) {
     `${guidanceSnippet}${hintLines}\n` +
     'You must apply these preferences to difficulty, style, and scope unless they conflict with factual accuracy.\n\n'
   );
+}
+
+function normalizeOptionText(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
+function hasObviousLengthBias(options, correctIndex) {
+  if (!Array.isArray(options) || options.length < 2) return true;
+  if (!Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex >= options.length) return true;
+
+  const normalized = options.map(normalizeOptionText);
+  if (normalized.some((opt) => !opt)) return true;
+
+  const charLens = normalized.map((opt) => opt.length);
+  const minChars = Math.min(...charLens);
+  const maxChars = Math.max(...charLens);
+  if (minChars <= 0) return true;
+
+  const spanRatio = maxChars / minChars;
+  if (spanRatio > 2.4) return true;
+
+  const correctChars = charLens[correctIndex];
+  const wrongChars = charLens.filter((_, idx) => idx !== correctIndex);
+  const wrongAvg = wrongChars.reduce((sum, len) => sum + len, 0) / wrongChars.length;
+  const wrongMax = Math.max(...wrongChars);
+
+  if (correctChars > wrongMax + 28 && correctChars > wrongAvg * 1.3) return true;
+
+  const wordLens = normalized.map((opt) => opt.split(/\s+/).filter(Boolean).length);
+  const minWords = Math.min(...wordLens);
+  const maxWords = Math.max(...wordLens);
+  if (minWords > 0 && maxWords / minWords > 2.5) return true;
+
+  return false;
 }
 
 function wait(ms) {
@@ -197,6 +237,8 @@ async function generateQuiz({ moduleTitle, subjectName, materialText, count = 10
           `Subject: ${subjectName}\nModule: ${moduleTitle}\n` +
           guidanceBlock +
           `Material excerpt:\n${materialSnippet}\n\n` +
+          `${DEFAULT_QUIZ_DIFFICULTY_RULE}\n` +
+          `${OPTION_QUALITY_RULES}\n` +
           'Keep questions concise. Avoid repeating previous questions. ' +
           'Before finalizing, verify each question follows the user preferences. ' +
           'Return ONLY JSON with this shape:\n' +
@@ -221,11 +263,18 @@ async function generateQuiz({ moduleTitle, subjectName, materialText, count = 10
       const dedupeKey = normalizedQuestion.toLowerCase();
       if (!normalizedQuestion || seen.has(dedupeKey)) continue;
 
+      const normalizedOptions = q.options.slice(0, 4).map(normalizeOptionText);
+      if (normalizedOptions.length < 2 || normalizedOptions.some((opt) => !opt)) continue;
+
+      const correctIndex = Number.isInteger(q.correct_index) ? q.correct_index : 0;
+      if (correctIndex < 0 || correctIndex >= normalizedOptions.length) continue;
+      if (hasObviousLengthBias(normalizedOptions, correctIndex)) continue;
+
       seen.add(dedupeKey);
       collected.push({
         question: normalizedQuestion,
-        options: q.options.slice(0, 4).map((o) => String(o)),
-        correct_index: Number.isInteger(q.correct_index) ? q.correct_index : 0,
+        options: normalizedOptions,
+        correct_index: correctIndex,
         explanation: q.explanation ? String(q.explanation) : '',
         topic: q.topic ? String(q.topic) : 'General'
       });
@@ -258,6 +307,8 @@ async function generateQuiz({ moduleTitle, subjectName, materialText, count = 10
           `Subject: ${subjectName}\nModule: ${moduleTitle}\n` +
           guidanceBlock +
           `Material excerpt:\n${materialSnippet}\n\n` +
+          `${DEFAULT_QUIZ_DIFFICULTY_RULE}\n` +
+          `${OPTION_QUALITY_RULES}\n` +
           'Questions must be different from typical/common prompts. ' +
           'Before finalizing, verify each question follows the user preferences. ' +
           'Return ONLY JSON with this shape:\n' +
@@ -281,11 +332,18 @@ async function generateQuiz({ moduleTitle, subjectName, materialText, count = 10
       const dedupeKey = normalizedQuestion.toLowerCase();
       if (!normalizedQuestion || seen.has(dedupeKey)) continue;
 
+      const normalizedOptions = q.options.slice(0, 4).map(normalizeOptionText);
+      if (normalizedOptions.length < 2 || normalizedOptions.some((opt) => !opt)) continue;
+
+      const correctIndex = Number.isInteger(q.correct_index) ? q.correct_index : 0;
+      if (correctIndex < 0 || correctIndex >= normalizedOptions.length) continue;
+      if (hasObviousLengthBias(normalizedOptions, correctIndex)) continue;
+
       seen.add(dedupeKey);
       collected.push({
         question: normalizedQuestion,
-        options: q.options.slice(0, 4).map((o) => String(o)),
-        correct_index: Number.isInteger(q.correct_index) ? q.correct_index : 0,
+        options: normalizedOptions,
+        correct_index: correctIndex,
         explanation: q.explanation ? String(q.explanation) : '',
         topic: q.topic ? String(q.topic) : 'General'
       });

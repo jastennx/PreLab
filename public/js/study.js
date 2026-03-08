@@ -8,6 +8,120 @@ const CHAT_LOADING_SKELETON = `
   </div>
 `;
 
+/* ═══════ QUIZ LOADING OVERLAY ═══════ */
+const QUIZ_LOADING_FACTS = [
+  'Spacing out your study sessions improves long-term retention by up to 50%.',
+  'Testing yourself is one of the most effective study strategies—better than re-reading!',
+  'Your brain forms stronger memories when you actively recall information.',
+  'Taking short breaks between study sessions boosts focus and creativity.',
+  'Mixing different topics in one session (interleaving) improves problem-solving.',
+  'Writing things down by hand helps encode memories more deeply.',
+  'Sleep plays a crucial role in consolidating what you learn during the day.',
+  'Teaching a concept to someone else is one of the best ways to master it.',
+  'The "testing effect" shows that practice quizzes improve exam scores by 10-20%.',
+  'Your working memory can hold about 4 chunks of information at once.',
+  'Elaborative interrogation—asking "why"—dramatically improves understanding.',
+  'Background music without lyrics can help maintain focus while studying.',
+  'The Pomodoro Technique: 25 min study + 5 min break keeps you sharp.',
+  'Mnemonics and memory palaces have been used since ancient Greek times.',
+  'Hydration matters—even mild dehydration can reduce cognitive performance.',
+];
+
+let _qlFactTimer = null;
+let _qlProgressTimer = null;
+let _qlProgress = 0;
+
+function showQuizLoadingOverlay(questionCount) {
+  const overlay = document.getElementById('quiz-loading-overlay');
+  if (!overlay) return;
+  overlay.classList.add('active');
+
+  // Reset state
+  _qlProgress = 0;
+  const fill = document.getElementById('ql-progress-fill');
+  const label = document.getElementById('ql-progress-label');
+  const row = document.getElementById('ql-progress-row');
+  if (fill) fill.style.width = '0%';
+  if (label) label.textContent = '0%';
+  if (row) row.style.display = 'flex';
+
+  // Rotate status messages
+  const statusEl = document.getElementById('ql-status');
+  const subEl = document.getElementById('ql-sub');
+  const statusMessages = [
+    ['Crafting your questions…', 'Our AI is building a personalized quiz just for you.'],
+    ['Analyzing your material…', 'Identifying the most important concepts to test.'],
+    ['Generating answer choices…', 'Creating challenging but fair options.'],
+    ['Almost there…', 'Polishing the final questions for your quiz.'],
+  ];
+  let msgIdx = 0;
+  if (statusEl) statusEl.textContent = statusMessages[0][0];
+  if (subEl) subEl.textContent = statusMessages[0][1];
+
+  // Simulate progress (reaches ~90% then waits)
+  const estimatedMs = Math.max(6000, questionCount * 800);
+  const tick = 400;
+  _qlProgressTimer = setInterval(() => {
+    if (_qlProgress < 90) {
+      _qlProgress += (90 - _qlProgress) * (tick / estimatedMs) * 1.8;
+      _qlProgress = Math.min(90, _qlProgress);
+    }
+    if (fill) fill.style.width = Math.round(_qlProgress) + '%';
+    if (label) label.textContent = Math.round(_qlProgress) + '%';
+
+    // Rotate status message at progress thresholds
+    const newIdx = _qlProgress < 25 ? 0 : _qlProgress < 50 ? 1 : _qlProgress < 75 ? 2 : 3;
+    if (newIdx !== msgIdx) {
+      msgIdx = newIdx;
+      if (statusEl) statusEl.textContent = statusMessages[msgIdx][0];
+      if (subEl) subEl.textContent = statusMessages[msgIdx][1];
+    }
+  }, tick);
+
+  // Rotate fun facts every 4.5s
+  let factIdx = Math.floor(Math.random() * QUIZ_LOADING_FACTS.length);
+  setFactText(QUIZ_LOADING_FACTS[factIdx]);
+  _qlFactTimer = setInterval(() => {
+    factIdx = (factIdx + 1) % QUIZ_LOADING_FACTS.length;
+    rotateFact(QUIZ_LOADING_FACTS[factIdx]);
+  }, 4500);
+}
+
+function hideQuizLoadingOverlay() {
+  clearInterval(_qlFactTimer);
+  clearInterval(_qlProgressTimer);
+
+  // Snap to 100%
+  const fill = document.getElementById('ql-progress-fill');
+  const label = document.getElementById('ql-progress-label');
+  if (fill) fill.style.width = '100%';
+  if (label) label.textContent = '100%';
+
+  setTimeout(() => {
+    const overlay = document.getElementById('quiz-loading-overlay');
+    if (overlay) overlay.classList.remove('active');
+  }, 500);
+}
+
+function setFactText(text) {
+  const el = document.getElementById('ql-fact-text');
+  if (el) el.textContent = text;
+}
+
+function rotateFact(text) {
+  const card = document.getElementById('ql-fact-card');
+  if (!card) return;
+  card.classList.add('ql-fact-out');
+  setTimeout(() => {
+    setFactText(text);
+    card.classList.remove('ql-fact-out');
+    // Re-trigger entrance animation
+    card.style.animation = 'none';
+    card.offsetHeight; // reflow
+    card.style.animation = '';
+  }, 350);
+}
+
 function goTo(url, replace = false) {
   if (window.prelabNavigate) {
     window.prelabNavigate(url, { replace });
@@ -518,6 +632,7 @@ document.getElementById('start-practice').addEventListener('click', async () => 
   const quizGuidance = sanitizeQuizGuidance(document.getElementById('quiz-guidance')?.value || '');
   try {
     setQuizLoading(true, 'Module is still creating your quiz. Please wait...');
+    showQuizLoadingOverlay(selectedQuestionCount);
     /* Collect timer settings before generating */
     const timerEnabled = document.getElementById('timer-toggle')?.checked || false;
     const timerSeconds = Number(document.getElementById('timer-seconds')?.value) || 30;
@@ -532,6 +647,8 @@ document.getElementById('start-practice').addEventListener('click', async () => 
       quizGuidance,
       timer: timerPayload
     });
+
+    hideQuizLoadingOverlay();
 
     if (data.warning) {
       await window.prelabDialog.alert(data.warning, { title: 'Notice', icon: 'warning' });
@@ -566,6 +683,7 @@ document.getElementById('start-practice').addEventListener('click', async () => 
       goTo('/pages/dashboard');
     }
   } catch (error) {
+    hideQuizLoadingOverlay();
     setQuizLoading(false, '');
     const message = String(error.message || '');
     const lowered = message.toLowerCase();

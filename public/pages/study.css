@@ -871,6 +871,194 @@ body.has-global-grid .bg-mesh {
   animation-delay: 160ms;
 }
 
+/* ═══════════════════════════════════════════════════════
+   QUIZ GENERATION LOADING OVERLAY
+   ═══════════════════════════════════════════════════════ */
+.quiz-loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 1, 24, 0.92);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .4s ease;
+}
+.quiz-loading-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Animated brain/book icon ring */
+.ql-ring {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin-bottom: 2rem;
+}
+
+.ql-ring-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid rgba(143, 73, 230, 0.15);
+}
+
+.ql-ring-spinner {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-top-color: var(--teal, #8f49e6);
+  border-right-color: var(--sun, #b06cff);
+  animation: ql-spin 1.2s linear infinite;
+}
+
+.ql-ring-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.4rem;
+  animation: ql-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ql-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes ql-pulse {
+  0%, 100% { transform: scale(1); opacity: .85; }
+  50%      { transform: scale(1.12); opacity: 1; }
+}
+
+/* Progress dots */
+.ql-dots {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1.6rem;
+}
+
+.ql-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--teal, #8f49e6);
+  opacity: .3;
+  animation: ql-dot-bounce .6s ease infinite;
+}
+
+.ql-dot:nth-child(2) { animation-delay: .15s; }
+.ql-dot:nth-child(3) { animation-delay: .3s; }
+
+@keyframes ql-dot-bounce {
+  0%, 100% { opacity: .3; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.4); }
+}
+
+/* Status text */
+.ql-status {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ink, #f5efff);
+  text-align: center;
+  margin-bottom: .5rem;
+}
+
+.ql-sub {
+  font-size: .82rem;
+  color: var(--ink-soft, #b5a7d2);
+  text-align: center;
+  max-width: 360px;
+  margin-bottom: 2rem;
+}
+
+/* Rotating fun facts / tips */
+.ql-fact-card {
+  background: var(--panel, rgba(25, 8, 52, 0.55));
+  border: 1px solid var(--line, rgba(197, 174, 235, 0.22));
+  border-radius: var(--radius, 14px);
+  padding: 1.2rem 1.6rem;
+  max-width: 420px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: ql-fact-in .5s ease forwards;
+}
+
+.ql-fact-card.ql-fact-out {
+  animation: ql-fact-out .35s ease forwards;
+}
+
+.ql-fact-label {
+  font-size: .65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: var(--teal, #8f49e6);
+  margin-bottom: .5rem;
+}
+
+.ql-fact-text {
+  font-size: .88rem;
+  line-height: 1.55;
+  color: var(--ink-soft, #b5a7d2);
+}
+
+@keyframes ql-fact-in {
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes ql-fact-out {
+  to { opacity: 0; transform: translateY(-10px); }
+}
+
+/* Question count progress */
+.ql-progress-row {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: 1.6rem;
+}
+
+.ql-progress-bar {
+  width: 200px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(143, 73, 230, 0.15);
+  overflow: hidden;
+}
+
+.ql-progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--teal, #8f49e6), var(--sun, #b06cff));
+  transition: width .6s ease;
+}
+
+.ql-progress-label {
+  font-size: .75rem;
+  font-weight: 600;
+  color: var(--ink-dim, #7e6f9a);
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+/* Mobile tweaks */
+@media (max-width: 600px) {
+  .ql-ring { width: 90px; height: 90px; }
+  .ql-ring-icon { font-size: 1.8rem; }
+  .ql-fact-card { margin: 0 1rem; padding: 1rem; }
+  .ql-status { font-size: .95rem; }
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }

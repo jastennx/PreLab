@@ -180,6 +180,31 @@
   <script src="../js/api.js"></script>
   <script src="../js/theme.js"></script>
   <script src="../js/study.js"></script>
+
+  <!-- Quiz generation loading overlay -->
+  <div class="quiz-loading-overlay" id="quiz-loading-overlay">
+    <div class="ql-ring">
+      <div class="ql-ring-track"></div>
+      <div class="ql-ring-spinner"></div>
+      <div class="ql-ring-icon">🧠</div>
+    </div>
+    <div class="ql-dots">
+      <span class="ql-dot"></span>
+      <span class="ql-dot"></span>
+      <span class="ql-dot"></span>
+    </div>
+    <p class="ql-status" id="ql-status">Crafting your questions…</p>
+    <p class="ql-sub" id="ql-sub">Our AI is building a personalized quiz just for you.</p>
+    <div class="ql-progress-row" id="ql-progress-row" style="display:none">
+      <div class="ql-progress-bar"><span class="ql-progress-fill" id="ql-progress-fill"></span></div>
+      <span class="ql-progress-label" id="ql-progress-label">0%</span>
+    </div>
+    <div class="ql-fact-card" id="ql-fact-card">
+      <p class="ql-fact-label">💡 Did you know?</p>
+      <p class="ql-fact-text" id="ql-fact-text">Spacing out your study sessions improves long-term retention by up to 50%.</p>
+    </div>
+  </div>
+
   <script>
     const fab = document.getElementById('chat-fab');
     const drawer = document.getElementById('chat-drawer');

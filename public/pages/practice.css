@@ -469,15 +469,26 @@ a:focus-visible {
 
 @media (max-width: 620px) {
   .topbar {
-    height: auto;
-    padding: 0.7rem;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 120;
+    height: 58px;
+    padding: 0.6rem 0.7rem;
+    flex-wrap: nowrap;
+    gap: 0.4rem;
+  }
+
+  body {
+    padding-top: 58px;
   }
 
   .actions {
-    width: 100%;
+    width: auto;
+    margin-left: auto;
     justify-content: flex-end;
+    flex-wrap: nowrap;
   }
 
   .quiz-layout,
@@ -502,7 +513,11 @@ a:focus-visible {
 @media (max-width: 480px) {
   .topbar { padding: 0.5rem 0.6rem; }
   .brand-logo { height: 26px; }
-  .actions a, .actions button { padding: 0.35rem 0.55rem; font-size: 0.7rem; }
+  .actions a, .actions button {
+    padding: 0.35rem 0.55rem;
+    font-size: 0.7rem;
+    white-space: nowrap;
+  }
 
   .progress-strip { width: calc(100% - 0.6rem); margin-top: 0.5rem; }
 

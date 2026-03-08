@@ -87,22 +87,32 @@ body {
 }
 
 .score-ring {
-  width: 120px; height: 120px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--violet), #22d3ee);
-  display: grid; place-items: center;
+  width: 140px; height: 140px;
   position: relative;
-  box-shadow: 0 0 40px var(--violet-glow), 0 0 80px rgba(139,92,246,.08);
+  display: grid; place-items: center;
 }
-.score-ring::before {
-  content: '';
-  position: absolute; inset: 4px;
-  border-radius: 50%;
-  background: var(--bg);
+.score-svg {
+  width: 100%; height: 100%;
+  transform: rotate(-90deg);
+  position: absolute; inset: 0;
+}
+.score-track {
+  fill: none;
+  stroke: rgba(139,92,246,.12);
+  stroke-width: 8;
+}
+.score-arc {
+  fill: none;
+  stroke: url(#score-gradient);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 326.73;
+  stroke-dashoffset: 326.73;
+  transition: stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1);
 }
 .score-value {
   position: relative; z-index: 1;
-  font-size: 2rem; font-weight: 800;
+  font-size: 2.2rem; font-weight: 800;
   background: linear-gradient(135deg, var(--violet), #22d3ee);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   background-clip: text;

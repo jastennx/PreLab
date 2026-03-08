@@ -38,6 +38,16 @@
     <div class="hero-inner">
       <h1 id="result-title" class="hero-title" data-reveal="fade-up" data-delay="1">Quiz Results</h1>
       <div class="score-ring" data-reveal="scale-in" data-delay="2">
+        <svg class="score-svg" viewBox="0 0 120 120">
+          <defs>
+            <linearGradient id="score-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#8b5cf6" />
+              <stop offset="100%" stop-color="#22d3ee" />
+            </linearGradient>
+          </defs>
+          <circle class="score-track" cx="60" cy="60" r="52" />
+          <circle id="score-arc" class="score-arc" cx="60" cy="60" r="52" />
+        </svg>
         <span id="score" class="score-value">-</span>
       </div>
       <p class="correct-label" data-reveal="fade-up" data-delay="3">Correct: <strong id="correct">-/-</strong></p>

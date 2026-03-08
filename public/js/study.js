@@ -36,6 +36,7 @@ async function bootstrap() {
 
   document.getElementById('module-title').textContent = module.title;
   document.getElementById('subject-name').textContent = `Subject: ${module.subjects?.name || 'General'}`;
+  setupVisibilityToggle(module, authUser.id);
   setupQuizGuidanceInput(module.id);
   setupQuestionCountInput();
   setupTimerToggle();
@@ -77,6 +78,34 @@ function sanitizeQuestionCount(value) {
   const parsed = Number.parseInt(String(value || '').trim(), 10);
   if (!Number.isFinite(parsed)) return 10;
   return Math.min(MAX_QUESTION_COUNT, Math.max(MIN_QUESTION_COUNT, parsed));
+}
+
+function setupVisibilityToggle(module, userId) {
+  const toggle = document.getElementById('visibility-toggle');
+  if (!toggle) return;
+
+  /* Only module owner can toggle visibility */
+  if (module.user_id !== userId) {
+    toggle.closest('.vis-toggle-row')?.remove();
+    return;
+  }
+
+  toggle.checked = module.is_public === true;
+
+  toggle.addEventListener('change', async () => {
+    const isPublic = toggle.checked;
+    try {
+      await window.api.patch(
+        `/modules/${encodeURIComponent(module.id)}/visibility`,
+        { isPublic }
+      );
+      module.is_public = isPublic;
+      window.localStorage.setItem('prelab_module', JSON.stringify(module));
+    } catch (_error) {
+      toggle.checked = !isPublic;
+      await window.prelabDialog.alert('Failed to update visibility.', { title: 'Error', icon: 'error' });
+    }
+  });
 }
 
 function setupQuestionCountInput() {
@@ -462,9 +491,24 @@ document.getElementById('start-practice').addEventListener('click', async () => 
     }
 
     setQuizLoading(false, '');
-    const quizId = encodeURIComponent(data.quizId || '');
-    const moduleId = encodeURIComponent(module.id || '');
-    goTo(`/pages/practice?quizId=${quizId}&moduleId=${moduleId}`);
+
+    const proceed = await window.prelabDialog.confirm(
+      'Your practice quiz has been generated! Would you like to start it now?',
+      {
+        title: 'Quiz Ready',
+        icon: 'success',
+        confirmButtonText: 'Start Quiz',
+        cancelButtonText: 'Back to Dashboard'
+      }
+    );
+
+    if (proceed) {
+      const quizId = encodeURIComponent(data.quizId || '');
+      const moduleId = encodeURIComponent(module.id || '');
+      goTo(`/pages/practice?quizId=${quizId}&moduleId=${moduleId}`);
+    } else {
+      goTo('/pages/dashboard');
+    }
   } catch (error) {
     setQuizLoading(false, '');
     const message = String(error.message || '');

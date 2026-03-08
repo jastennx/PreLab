@@ -421,6 +421,12 @@ body.has-global-grid .bg-mesh {
   padding-top: 0.25rem;
 }
 
+/* Visibility toggle (hero) */
+.vis-toggle-row {
+  display: flex;
+  align-items: center;
+}
+
 .sr-only {
   position: absolute; width: 1px; height: 1px;
   padding: 0; margin: -1px; overflow: hidden;

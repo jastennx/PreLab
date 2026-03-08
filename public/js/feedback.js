@@ -83,6 +83,17 @@ function renderResult(result) {
   document.getElementById('score').textContent = formattedScore;
   document.getElementById('correct').textContent = `${result.correct_count}/${result.total_questions}`;
 
+  /* Animate score ring */
+  const arc = document.getElementById('score-arc');
+  if (arc) {
+    const circumference = 2 * Math.PI * 52; /* r=52 → ~326.73 */
+    const pct = Number.isFinite(rawScore) ? rawScore / 100 : 0;
+    const offset = circumference * (1 - pct);
+    requestAnimationFrame(() => {
+      arc.style.strokeDashoffset = String(offset);
+    });
+  }
+
   const reviewList = document.getElementById('review-list');
   reviewList.innerHTML = '';
 

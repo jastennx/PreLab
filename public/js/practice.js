@@ -5,6 +5,7 @@ let isSubmitting = false;
 let timerInterval = null;
 let timerSettings = null;
 let timeRemaining = 0;
+let timerStartedForIndex = -1;
 
 function goTo(url, replace = false) {
   if (window.prelabNavigate) {
@@ -132,18 +133,12 @@ function renderPager() {
     if (index === currentIndex) btn.classList.add('active');
     if (answers[index] !== null && index !== currentIndex) btn.classList.add('done');
 
-    /* Block navigation to other questions when timed */
-    if (timerSettings && index !== currentIndex) {
-      btn.disabled = true;
-      btn.classList.add('locked');
-    } else {
-      btn.addEventListener('click', () => {
-        if (isSubmitting) return;
-        currentIndex = index;
-        renderPager();
-        renderQuestion();
-      });
-    }
+    btn.addEventListener('click', () => {
+      if (isSubmitting) return;
+      currentIndex = index;
+      renderPager();
+      renderQuestion();
+    });
 
     pager.appendChild(btn);
   });
@@ -181,7 +176,10 @@ function renderQuestion() {
   nextBtn.textContent = currentIndex + 1 === total ? 'Submit Quiz' : 'Next';
   nextBtn.disabled = isSubmitting;
 
-  if (timerSettings) startTimer();
+  if (timerSettings && timerStartedForIndex !== currentIndex) {
+    timerStartedForIndex = currentIndex;
+    startTimer();
+  }
 }
 
 function startTimer() {
@@ -265,7 +263,7 @@ document.getElementById('next-btn').addEventListener('click', async () => {
   }
 
   const hasBlank = answers.some((item) => item === null);
-  if (hasBlank) {
+  if (hasBlank && !timerSettings) {
     await window.prelabDialog.alert('Please answer all questions before submitting.', {
       title: 'Incomplete Answers',
       icon: 'warning'
@@ -273,8 +271,13 @@ document.getElementById('next-btn').addEventListener('click', async () => {
     return;
   }
 
+  const blankCount = answers.filter((item) => item === null).length;
+  const confirmMessage = hasBlank && timerSettings
+    ? `You have ${blankCount} unanswered question${blankCount > 1 ? 's' : ''}. Unanswered questions will be marked incorrect. Submit anyway?`
+    : 'Are you sure you want to submit your answers? You will not be able to change them after submitting.';
+
   const shouldSubmit = await window.prelabDialog.confirm(
-    'Are you sure you want to submit your answers? You will not be able to change them after submitting.',
+    confirmMessage,
     {
       title: 'Submit Quiz',
       icon: 'question',

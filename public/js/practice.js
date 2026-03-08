@@ -133,12 +133,18 @@ function renderPager() {
     if (index === currentIndex) btn.classList.add('active');
     if (answers[index] !== null && index !== currentIndex) btn.classList.add('done');
 
-    btn.addEventListener('click', () => {
-      if (isSubmitting) return;
-      currentIndex = index;
-      renderPager();
-      renderQuestion();
-    });
+    /* Block navigation to other questions when timed */
+    if (timerSettings && index !== currentIndex) {
+      btn.disabled = true;
+      btn.classList.add('locked');
+    } else {
+      btn.addEventListener('click', () => {
+        if (isSubmitting) return;
+        currentIndex = index;
+        renderPager();
+        renderQuestion();
+      });
+    }
 
     pager.appendChild(btn);
   });

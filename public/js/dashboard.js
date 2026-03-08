@@ -8,6 +8,7 @@ const MODULE_LOADING_SKELETON = `
     <div class="skeleton-card"></div>
   </div>
 `;
+const QUIZ_PROGRESS_KEY_PREFIX = 'prelab_quiz_progress_';
 
 function goTo(url, replace = false) {
   if (window.prelabNavigate) {
@@ -19,6 +20,51 @@ function goTo(url, replace = false) {
     return;
   }
   window.location.href = url;
+}
+
+function getSavedQuizProgressByModule(userId) {
+  const map = new Map();
+
+  for (let i = 0; i < window.localStorage.length; i += 1) {
+    const key = window.localStorage.key(i);
+    if (!key || !key.startsWith(QUIZ_PROGRESS_KEY_PREFIX)) continue;
+
+    try {
+      const parsed = JSON.parse(window.localStorage.getItem(key) || 'null');
+      if (!parsed || typeof parsed !== 'object') continue;
+
+      if (parsed.userId && parsed.userId !== userId) continue;
+
+      const moduleId = String(parsed.moduleId || '').trim();
+      const quizId = String(parsed.quizId || '').trim();
+      const answers = Array.isArray(parsed.answers) ? parsed.answers : [];
+      const totalQuestions = Number(parsed.totalQuestions) || answers.length || 0;
+      const answeredCount = answers.filter((value) => Number.isInteger(value) && value >= 0).length;
+      const currentIndex = Number.isInteger(parsed.currentIndex) ? parsed.currentIndex : 0;
+      const updatedAt = Number(parsed.updatedAt) || 0;
+
+      if (!moduleId || !quizId || totalQuestions <= 0) continue;
+      if (answeredCount <= 0 || answeredCount >= totalQuestions) continue;
+
+      const normalized = {
+        storageKey: key,
+        quizId,
+        currentIndex,
+        answeredCount,
+        totalQuestions,
+        updatedAt
+      };
+
+      const previous = map.get(moduleId);
+      if (!previous || normalized.updatedAt > previous.updatedAt) {
+        map.set(moduleId, normalized);
+      }
+    } catch (_error) {
+      continue;
+    }
+  }
+
+  return map;
 }
 
 async function bootstrap() {
@@ -123,6 +169,7 @@ async function loadModules(userId) {
     }
 
     container.innerHTML = '';
+    const progressByModule = getSavedQuizProgressByModule(userId);
 
     const latestResultByModule = new Map();
     for (const item of results) {
@@ -138,6 +185,7 @@ async function loadModules(userId) {
 
     for (const module of modules) {
       const latestResult = latestResultByModule.get(module.id);
+      const savedProgress = progressByModule.get(module.id);
       const scoreText = latestResult ? `${latestResult.correct}/${latestResult.total}` : null;
       const isPublic = module.is_public;
       const visBadge = isPublic
@@ -162,6 +210,13 @@ async function loadModules(userId) {
         ${scoreText ? `<p class="module-score">Last Score: <strong>${scoreText}</strong></p>` : `<p class="module-meta" style="font-style:italic">No quiz taken yet — start a practice quiz!</p>`}
         <div class="module-actions">
           <button class="start-btn" data-action="start" data-id="${module.id}">Start</button>
+          ${
+            savedProgress
+              ? `<button class="summary-btn" data-action="resume" data-id="${module.id}" data-quiz-id="${savedProgress.quizId}" data-progress-key="${savedProgress.storageKey}">
+                   Resume ${Math.max(1, Math.min(savedProgress.totalQuestions, savedProgress.currentIndex + 1))}/${savedProgress.totalQuestions}
+                 </button>`
+              : ''
+          }
           ${
             latestResult
               ? `<button class="summary-btn" data-action="summary" data-result-id="${latestResult.resultId}">View Summary</button>`
@@ -248,6 +303,45 @@ async function loadModules(userId) {
             );
             window.localStorage.setItem('prelab_result', JSON.stringify(resultPayload.result));
             goTo(`/pages/feedback?resultId=${encodeURIComponent(resultId)}`);
+            return;
+          }
+
+          if (action === 'resume') {
+            const quizId = String(btn.dataset.quizId || '').trim();
+            const progressKey = String(btn.dataset.progressKey || '').trim();
+            if (!quizId) return;
+
+            try {
+              const [details, quizPayload] = await Promise.all([
+                window.api.get(`/modules/${moduleId}?userId=${encodeURIComponent(userId)}`),
+                window.api.get(`/quizzes/${encodeURIComponent(quizId)}?userId=${encodeURIComponent(userId)}`)
+              ]);
+              const quizJson = quizPayload?.quiz?.quiz_json;
+              if (!quizPayload?.quiz?.id || !quizJson?.questions?.length) {
+                if (progressKey) window.localStorage.removeItem(progressKey);
+                await loadModules(userId);
+                await window.prelabDialog.alert('Saved quiz progress is no longer available.', {
+                  title: 'Resume Unavailable',
+                  icon: 'warning'
+                });
+                return;
+              }
+
+              window.localStorage.removeItem('prelab_result');
+              window.localStorage.setItem('prelab_module', JSON.stringify(details.module));
+              window.localStorage.setItem('prelab_quiz', JSON.stringify({
+                quizId: quizPayload.quiz.id,
+                quiz: quizJson
+              }));
+              goTo(`/pages/practice?quizId=${encodeURIComponent(quizPayload.quiz.id)}&moduleId=${encodeURIComponent(moduleId)}`);
+            } catch (_error) {
+              if (progressKey) window.localStorage.removeItem(progressKey);
+              await loadModules(userId);
+              await window.prelabDialog.alert('Saved quiz progress is no longer available.', {
+                title: 'Resume Unavailable',
+                icon: 'warning'
+              });
+            }
             return;
           }
 
@@ -596,4 +690,3 @@ async function initCommunitySection(userId) {
 }
 
 bootstrap();
-

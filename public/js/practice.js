@@ -6,6 +6,8 @@ let timerInterval = null;
 let timerSettings = null;
 let timeRemaining = 0;
 let timerStartedForIndex = -1;
+let activeModuleId = '';
+let activeQuizId = '';
 
 function goTo(url, replace = false) {
   if (window.prelabNavigate) {
@@ -17,6 +19,73 @@ function goTo(url, replace = false) {
     return;
   }
   window.location.href = url;
+}
+
+function getProgressStorageKey(moduleId, quizId) {
+  if (!moduleId || !quizId) return '';
+  return `prelab_quiz_progress_${moduleId}_${quizId}`;
+}
+
+function clearSavedQuizProgress(moduleId, quizId) {
+  const key = getProgressStorageKey(moduleId, quizId);
+  if (!key) return;
+  window.localStorage.removeItem(key);
+}
+
+function readSavedQuizProgress(moduleId, quizId, totalQuestions) {
+  const key = getProgressStorageKey(moduleId, quizId);
+  if (!key || !Number.isInteger(totalQuestions) || totalQuestions <= 0) return null;
+
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(key) || 'null');
+    if (!parsed || typeof parsed !== 'object') return null;
+
+    const savedAnswers = Array.isArray(parsed.answers) ? parsed.answers : [];
+    const answersSafe = new Array(totalQuestions).fill(null).map((_, index) => {
+      const value = savedAnswers[index];
+      return Number.isInteger(value) && value >= 0 && value <= 3 ? value : null;
+    });
+
+    const savedIndex = Number.isInteger(parsed.currentIndex) ? parsed.currentIndex : 0;
+    const clampedIndex = Math.max(0, Math.min(totalQuestions - 1, savedIndex));
+
+    if (answersSafe.every((value) => value === null) && clampedIndex === 0) return null;
+
+    return {
+      answers: answersSafe,
+      currentIndex: clampedIndex
+    };
+  } catch (_error) {
+    return null;
+  }
+}
+
+function saveQuizProgress() {
+  const key = getProgressStorageKey(activeModuleId, activeQuizId);
+  if (!key || !quizData?.quiz?.questions?.length) return;
+
+  const isEmptyProgress = answers.every((value) => value === null) && currentIndex === 0;
+  if (isEmptyProgress) {
+    window.localStorage.removeItem(key);
+    return;
+  }
+
+  const activeUserId = String(
+    JSON.parse(window.localStorage.getItem('prelab_user') || '{}')?.id || ''
+  );
+
+  window.localStorage.setItem(
+    key,
+    JSON.stringify({
+      userId: activeUserId,
+      moduleId: activeModuleId,
+      quizId: activeQuizId,
+      currentIndex,
+      answers,
+      totalQuestions: quizData.quiz.questions.length,
+      updatedAt: Date.now()
+    })
+  );
 }
 
 function showQuestionSkeleton() {
@@ -53,7 +122,14 @@ async function bootstrap() {
   }
 
   quizData = quizWrapper;
+  activeModuleId = String(module.id || '');
+  activeQuizId = String(quizWrapper.quizId || '');
   answers = new Array(quizData.quiz.questions.length).fill(null);
+  const restoredProgress = readSavedQuizProgress(activeModuleId, activeQuizId, quizData.quiz.questions.length);
+  if (restoredProgress) {
+    answers = restoredProgress.answers;
+    currentIndex = restoredProgress.currentIndex;
+  }
 
   /* Load timer settings — check localStorage first, then quiz_json as fallback */
   try {
@@ -141,6 +217,7 @@ function renderPager() {
       btn.addEventListener('click', () => {
         if (isSubmitting) return;
         currentIndex = index;
+        saveQuizProgress();
         renderPager();
         renderQuestion();
       });
@@ -171,6 +248,7 @@ function renderQuestion() {
     btn.addEventListener('click', () => {
       if (isSubmitting) return;
       answers[currentIndex] = answers[currentIndex] === idx ? null : idx;
+      saveQuizProgress();
       renderPager();
       renderQuestion();
     });
@@ -227,6 +305,7 @@ function handleTimerExpired() {
   const total = quizData.quiz.questions.length;
   if (currentIndex + 1 < total) {
     currentIndex++;
+    saveQuizProgress();
     renderPager();
     renderQuestion();
   } else {
@@ -270,6 +349,7 @@ document.getElementById('next-btn').addEventListener('click', async () => {
       return;
     }
     currentIndex += 1;
+    saveQuizProgress();
     renderPager();
     renderQuestion();
     return;
@@ -318,6 +398,7 @@ document.getElementById('next-btn').addEventListener('click', async () => {
 
     window.localStorage.setItem('prelab_result', JSON.stringify(data.result));
     window.localStorage.removeItem('prelab_quiz');
+    clearSavedQuizProgress(activeModuleId, activeQuizId);
     setSubmitLoading(false, '');
     const resultId = encodeURIComponent(data.result?.id || '');
     const moduleId = encodeURIComponent(module.id || '');

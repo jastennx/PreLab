@@ -81,31 +81,87 @@ function sanitizeQuestionCount(value) {
 }
 
 function setupVisibilityToggle(module, userId) {
-  const toggle = document.getElementById('visibility-toggle');
-  if (!toggle) return;
+  const privateBtn = document.getElementById('vis-private-btn');
+  const publicBtn = document.getElementById('vis-public-btn');
+  const hint = document.getElementById('vis-hint');
+  if (!privateBtn || !publicBtn || !hint) return;
 
   /* Only module owner can toggle visibility */
   if (module.user_id !== userId) {
-    toggle.closest('.vis-toggle-row')?.remove();
+    privateBtn.closest('.vis-toggle-row')?.remove();
     return;
   }
 
-  toggle.checked = module.is_public === true;
+  async function setVisibility(vis) {
+    const nextIsPublic = vis === 'public';
+    const previousIsPublic = module.is_public === true;
+    if (nextIsPublic === previousIsPublic) return;
 
-  toggle.addEventListener('change', async () => {
-    const isPublic = toggle.checked;
+    privateBtn.disabled = true;
+    publicBtn.disabled = true;
     try {
-      await window.api.patch(
-        `/modules/${encodeURIComponent(module.id)}/visibility`,
-        { isPublic }
-      );
-      module.is_public = isPublic;
+      if (nextIsPublic) {
+        const cats = await window.api.get('/modules/categories');
+        const categoryList = cats.categories || [];
+        const catHtml = categoryList.map(c => `<option value="${c}">${c}</option>`).join('');
+        const confirmed = await window.prelabDialog.confirm(
+          `<div style="text-align:left">
+            <p style="margin-bottom:0.7rem;color:var(--ink-soft)">Choose a category for this public module:</p>
+            <select id="swal-category" style="width:100%;padding:0.55rem 0.75rem;border-radius:10px;border:1px solid var(--border);background:rgba(14,4,30,0.6);color:var(--ink);font-family:inherit;font-size:0.88rem">
+              <option value="">Select category...</option>
+              ${catHtml}
+            </select>
+          </div>`,
+          {
+            title: 'Make Public',
+            icon: 'info',
+            confirmButtonText: 'Publish',
+            html: true
+          }
+        );
+        if (!confirmed) return;
+        const selectedCat = document.getElementById('swal-category')?.value || '';
+        if (!selectedCat) {
+          await window.prelabDialog.alert('Please select a category to publish.', { title: 'Category Required', icon: 'warning' });
+          return;
+        }
+        await window.api.patch(
+          `/modules/${encodeURIComponent(module.id)}/visibility`,
+          { userId, isPublic: true, category: selectedCat }
+        );
+        module.category = selectedCat;
+      } else {
+        await window.api.patch(
+          `/modules/${encodeURIComponent(module.id)}/visibility`,
+          { userId, isPublic: false }
+        );
+      }
+      module.is_public = nextIsPublic;
       window.localStorage.setItem('prelab_module', JSON.stringify(module));
     } catch (_error) {
-      toggle.checked = !isPublic;
       await window.prelabDialog.alert('Failed to update visibility.', { title: 'Error', icon: 'error' });
+    } finally {
+      privateBtn.disabled = false;
+      publicBtn.disabled = false;
+      renderVisibility();
     }
-  });
+  }
+
+  function renderVisibility() {
+    if (module.is_public === true) {
+      publicBtn.classList.add('vis-btn--active');
+      privateBtn.classList.remove('vis-btn--active');
+      hint.textContent = 'This module will appear in the public community library.';
+      return;
+    }
+    privateBtn.classList.add('vis-btn--active');
+    publicBtn.classList.remove('vis-btn--active');
+    hint.textContent = 'Only you can see this module.';
+  }
+
+  privateBtn.addEventListener('click', () => setVisibility('private'));
+  publicBtn.addEventListener('click', () => setVisibility('public'));
+  renderVisibility();
 }
 
 function setupQuestionCountInput() {

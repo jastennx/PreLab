@@ -42,11 +42,20 @@
       </div>
       <div class="hero-actions">
         <div class="vis-toggle-row">
-          <label class="toggle-label-row">
-            <span class="toggle-text">Public</span>
-            <input type="checkbox" id="visibility-toggle" class="sr-only" />
-            <span class="toggle-track"><span class="toggle-knob"></span></span>
-          </label>
+          <div class="visibility-toggle">
+            <label class="toggle-label">Visibility</label>
+            <div class="toggle-switch-row">
+              <button type="button" id="vis-private-btn" class="vis-btn vis-btn--active" data-vis="private">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Private
+              </button>
+              <button type="button" id="vis-public-btn" class="vis-btn" data-vis="public">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                Public
+              </button>
+            </div>
+            <p class="vis-hint" id="vis-hint">Only you can see this module.</p>
+          </div>
         </div>
         <button id="generate-explanation" class="btn-accent">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -180,4 +189,3 @@
   </script>
 </body>
 </html>
-

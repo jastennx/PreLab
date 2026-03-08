@@ -16,6 +16,7 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 25 * 1024 * 1024 }
 });
+const QUIZ_GENERATION_PROFILE = 'v2_balanced_options';
 
 function fail(res, error, code = 500) {
   res.status(code).json({ error: error.message || 'Unexpected error' });
@@ -487,7 +488,12 @@ router.post('/practice/generate', async (req, res) => {
           const storedGuidance = normalizeQuizGuidance(
             q?.quiz_json?.custom_guidance || q?.quiz_json?.quiz_guidance || ''
           );
-          return count === safeCount && storedGuidance === quizGuidance;
+          const generationProfile = String(q?.quiz_json?.generation_profile || '');
+          return (
+            count === safeCount &&
+            storedGuidance === quizGuidance &&
+            generationProfile === QUIZ_GENERATION_PROFILE
+          );
         })
       : null;
 

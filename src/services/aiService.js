@@ -5,6 +5,7 @@ const MAX_QUIZ_COUNT = 50;
 const QUIZ_BATCH_SIZE = 25;
 const QUIZ_MATERIAL_LIMIT = 7000;
 const QUIZ_GUIDANCE_LIMIT = 600;
+const QUIZ_GENERATION_PROFILE = 'v2_balanced_options';
 const DEFAULT_QUIZ_DIFFICULTY_RULE =
   'Default difficulty (when user does not explicitly request easy/hard): medium-to-hard college level requiring reasoning, not rote recall.';
 const OPTION_QUALITY_RULES =
@@ -365,7 +366,8 @@ async function generateQuiz({ moduleTitle, subjectName, materialText, count = 10
     requested_count: requestedCount,
     generated_count: collected.length,
     partial,
-    custom_guidance: guidanceSnippet
+    custom_guidance: guidanceSnippet,
+    generation_profile: QUIZ_GENERATION_PROFILE
   };
 }
 

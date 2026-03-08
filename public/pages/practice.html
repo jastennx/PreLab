@@ -33,6 +33,13 @@
     </div>
   </header>
 
+  <!-- Timer display -->
+  <div class="timer-bar" id="timer-bar" style="display:none">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span id="timer-display">0:30</span>
+    <div class="timer-progress"><span id="timer-fill"></span></div>
+  </div>
+
   <!-- Thin progress bar spanning full width -->
   <div class="progress-strip">
     <span id="progress-fill"></span>
@@ -41,7 +48,7 @@
   <main class="quiz-layout">
 
     <!-- Left sidebar — navigation rail -->
-    <aside class="quiz-sidebar">
+    <aside class="quiz-sidebar" data-reveal="fade-up">
       <div class="sidebar-header">
         <h1 id="module-title">Module Quiz</h1>
         <p class="practice-note">Answer each question, then submit to get detailed feedback.</p>
@@ -60,7 +67,7 @@
     </aside>
 
     <!-- Main question area -->
-    <section class="quiz-main">
+    <section class="quiz-main" data-reveal="fade-up" data-delay="1">
       <div class="question-area">
         <div class="question-card">
           <h2 id="question-text">Loading question...</h2>

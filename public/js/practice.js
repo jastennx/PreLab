@@ -2,6 +2,9 @@ let currentIndex = 0;
 let answers = [];
 let quizData = null;
 let isSubmitting = false;
+let timerInterval = null;
+let timerSettings = null;
+let timeRemaining = 0;
 
 function goTo(url, replace = false) {
   if (window.prelabNavigate) {
@@ -50,6 +53,18 @@ async function bootstrap() {
 
   quizData = quizWrapper;
   answers = new Array(quizData.quiz.questions.length).fill(null);
+
+  /* Load timer settings — check localStorage first, then quiz_json as fallback */
+  try {
+    let saved = JSON.parse(window.localStorage.getItem('prelab_timer') || 'null');
+    if (!saved && quizData.quiz?.timer?.enabled) {
+      saved = { enabled: true, seconds: quizData.quiz.timer.seconds };
+    }
+    if (saved?.enabled && saved.seconds > 0) {
+      timerSettings = { seconds: Math.max(5, Math.min(300, Number(saved.seconds) || 30)) };
+      document.getElementById('timer-bar').style.display = '';
+    }
+  } catch (_e) { /* no timer */ }
 
   document.getElementById('module-title').textContent = module.title;
   document.getElementById('total-number').textContent = String(quizData.quiz.questions.length);
@@ -117,12 +132,18 @@ function renderPager() {
     if (index === currentIndex) btn.classList.add('active');
     if (answers[index] !== null && index !== currentIndex) btn.classList.add('done');
 
-    btn.addEventListener('click', () => {
-      if (isSubmitting) return;
-      currentIndex = index;
-      renderPager();
-      renderQuestion();
-    });
+    /* Block navigation to other questions when timed */
+    if (timerSettings && index !== currentIndex) {
+      btn.disabled = true;
+      btn.classList.add('locked');
+    } else {
+      btn.addEventListener('click', () => {
+        if (isSubmitting) return;
+        currentIndex = index;
+        renderPager();
+        renderQuestion();
+      });
+    }
 
     pager.appendChild(btn);
   });
@@ -159,6 +180,54 @@ function renderQuestion() {
   const nextBtn = document.getElementById('next-btn');
   nextBtn.textContent = currentIndex + 1 === total ? 'Submit Quiz' : 'Next';
   nextBtn.disabled = isSubmitting;
+
+  if (timerSettings) startTimer();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timeRemaining = timerSettings.seconds;
+  updateTimerDisplay();
+
+  timerInterval = setInterval(() => {
+    timeRemaining--;
+    updateTimerDisplay();
+    if (timeRemaining <= 0) {
+      clearInterval(timerInterval);
+      handleTimerExpired();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const display = document.getElementById('timer-display');
+  const fill = document.getElementById('timer-fill');
+  if (!display) return;
+
+  const mins = Math.floor(timeRemaining / 60);
+  const secs = timeRemaining % 60;
+  display.textContent = `${mins}:${String(secs).padStart(2, '0')}`;
+
+  if (fill) {
+    const pct = (timeRemaining / timerSettings.seconds) * 100;
+    fill.style.width = `${pct}%`;
+  }
+
+  const bar = document.getElementById('timer-bar');
+  if (bar) {
+    bar.classList.toggle('timer-warning', timeRemaining <= 5);
+  }
+}
+
+function handleTimerExpired() {
+  const total = quizData.quiz.questions.length;
+  if (currentIndex + 1 < total) {
+    currentIndex++;
+    renderPager();
+    renderQuestion();
+  } else {
+    document.getElementById('next-btn').click();
+  }
 }
 
 function setSubmitLoading(isLoading, text = '') {

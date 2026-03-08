@@ -495,6 +495,24 @@ router.post('/practice/generate', async (req, res) => {
       const reusedCount = Array.isArray(reusableQuiz.quiz_json?.questions)
         ? reusableQuiz.quiz_json.questions.length
         : 0;
+
+      /* Sync timer settings into reused quiz_json */
+      const timerInput = req.body.timer;
+      const currentTimer = reusableQuiz.quiz_json?.timer;
+      const wantTimer = timerInput && timerInput.enabled;
+      const timerChanged = wantTimer !== !!currentTimer?.enabled ||
+        (wantTimer && Number(timerInput.seconds) !== currentTimer?.seconds);
+      if (timerChanged) {
+        const updated = { ...reusableQuiz.quiz_json };
+        if (wantTimer) {
+          updated.timer = { enabled: true, seconds: Number(timerInput.seconds) || 30 };
+        } else {
+          delete updated.timer;
+        }
+        await supabaseAdmin.from('quizzes').update({ quiz_json: updated }).eq('id', reusableQuiz.id);
+        reusableQuiz.quiz_json = updated;
+      }
+
       return res.status(200).json({
         quizId: reusableQuiz.id,
         quiz: reusableQuiz.quiz_json,
@@ -513,6 +531,12 @@ router.post('/practice/generate', async (req, res) => {
       count: safeCount,
       quizGuidance
     });
+
+    /* Embed timer settings in quiz_json so community reviewers inherit them */
+    const timerInput = req.body.timer;
+    if (timerInput && timerInput.enabled) {
+      quiz.timer = { enabled: true, seconds: Number(timerInput.seconds) || 30 };
+    }
 
     const { data: quizRecord, error: quizError } = await supabaseAdmin
       .from('quizzes')
@@ -554,10 +578,25 @@ router.post('/practice/submit', async (req, res) => {
       .select('id,module_id,user_id,quiz_json')
       .eq('id', quizId)
       .eq('module_id', moduleId)
-      .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
     if (quizError) throw quizError;
+    if (!quizRecord) {
+      return res.status(404).json({ error: 'Quiz not found' });
+    }
+
+    /* Allow if user owns the quiz OR if the module is public */
+    if (quizRecord.user_id !== userId) {
+      const { data: pubCheck } = await supabaseAdmin
+        .from('modules')
+        .select('id')
+        .eq('id', moduleId)
+        .eq('is_public', true)
+        .maybeSingle();
+      if (!pubCheck) {
+        return res.status(403).json({ error: 'Access denied to this quiz' });
+      }
+    }
 
     const questions = quizRecord.quiz_json?.questions || [];
     if (!Array.isArray(questions) || !questions.length) {
@@ -664,6 +703,75 @@ router.get('/quizzes/:id', async (req, res) => {
     res.json({ quiz: data });
   } catch (error) {
     fail(res, error, error.statusCode || 404);
+  }
+});
+
+/**
+ * Persist timer settings into quiz_json so community reviewers inherit them.
+ */
+router.patch('/quizzes/:id/timer', async (req, res) => {
+  try {
+    const userId = resolveAuthenticatedUserId(req);
+    const quizId = req.params.id;
+    const { timer } = req.body;
+    if (!timer) return res.status(400).json({ error: 'timer is required' });
+
+    const { data: quiz, error: fetchErr } = await supabaseAdmin
+      .from('quizzes')
+      .select('id,user_id,quiz_json')
+      .eq('id', quizId)
+      .maybeSingle();
+    if (fetchErr) throw fetchErr;
+    if (!quiz) return res.status(404).json({ error: 'Quiz not found' });
+    if (quiz.user_id !== userId) return res.status(403).json({ error: 'Forbidden' });
+
+    const updatedJson = { ...quiz.quiz_json, timer: { enabled: !!timer.enabled, seconds: Number(timer.seconds) || 30 } };
+    const { error: updErr } = await supabaseAdmin
+      .from('quizzes')
+      .update({ quiz_json: updatedJson })
+      .eq('id', quizId);
+    if (updErr) throw updErr;
+
+    res.json({ ok: true });
+  } catch (error) {
+    fail(res, error, error.statusCode || 500);
+  }
+});
+
+/**
+ * Get the latest quiz for a public module (community reviewer).
+ * Returns the most recent quiz created by the module owner.
+ */
+router.get('/modules/:id/community-quiz', async (req, res) => {
+  try {
+    resolveAuthenticatedUserId(req);
+    const moduleId = req.params.id;
+
+    const { data: mod, error: modError } = await supabaseAdmin
+      .from('modules')
+      .select('id,user_id,is_public')
+      .eq('id', moduleId)
+      .eq('is_public', true)
+      .maybeSingle();
+
+    if (modError) throw modError;
+    if (!mod) return res.status(404).json({ error: 'Public module not found' });
+
+    const { data: quiz, error: quizError } = await supabaseAdmin
+      .from('quizzes')
+      .select('id,quiz_json,created_at')
+      .eq('module_id', moduleId)
+      .eq('user_id', mod.user_id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (quizError) throw quizError;
+    if (!quiz) return res.json({ quiz: null });
+
+    res.json({ quiz: { id: quiz.id, quiz_json: quiz.quiz_json, created_at: quiz.created_at } });
+  } catch (error) {
+    fail(res, error, error.statusCode || 500);
   }
 });
 

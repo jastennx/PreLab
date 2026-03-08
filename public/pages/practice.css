@@ -94,6 +94,54 @@ body {
   background: rgba(255, 127, 147, 0.1);
 }
 
+/* Timer bar */
+.timer-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: min(1180px, calc(100% - 2rem));
+  margin: 0.65rem auto 0;
+  padding: 0.5rem 0.85rem;
+  border-radius: 12px;
+  border: 1px solid rgba(173, 136, 235, 0.2);
+  background: rgba(18, 7, 44, 0.7);
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.timer-bar svg { flex-shrink: 0; color: #b889f8; }
+
+#timer-display {
+  min-width: 38px;
+  font-family: 'Outfit', 'Inter', monospace;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+}
+
+.timer-progress {
+  flex: 1; height: 4px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  overflow: hidden;
+}
+
+#timer-fill {
+  display: block;
+  width: 100%; height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #8f49e6, #c084fc);
+  transition: width 1s linear;
+}
+
+.timer-bar.timer-warning {
+  border-color: rgba(255, 127, 147, 0.35);
+}
+.timer-bar.timer-warning #timer-display { color: #ff9bad; }
+.timer-bar.timer-warning #timer-fill {
+  background: linear-gradient(90deg, #ff6467, #ff9bad);
+}
+
 .progress-strip {
   width: min(1180px, calc(100% - 2rem));
   margin: 0.8rem auto 0;
@@ -201,9 +249,14 @@ body {
   transition: 170ms ease;
 }
 
-.pager button:hover {
+.pager button:hover:not(:disabled) {
   border-color: var(--line-strong);
   color: #f3eaff;
+}
+
+.pager button.locked {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .pager button.active {

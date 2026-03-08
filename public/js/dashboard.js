@@ -49,7 +49,7 @@ async function bootstrap() {
   const isReturningUser = Array.isArray(knownUsers) && knownUsers.includes(authUser.id);
   document.getElementById('welcome-title').textContent = isReturningUser
     ? `Welcome Back, ${preferredName}!`
-    : `Welcome, ${preferredName}!`;
+    : `Hello, ${preferredName}!`;
 
   if (!isReturningUser) {
     const nextKnownUsers = Array.isArray(knownUsers) ? [...knownUsers, authUser.id] : [authUser.id];
@@ -151,14 +151,15 @@ async function loadModules(userId) {
            </span>`;
       const item = document.createElement('article');
       item.className = 'module-item';
+      const statusLabel = module.status === 'ready' ? 'Module Uploaded' : module.status;
       item.innerHTML = `
         <div class="module-head-row">
           <h3>${module.title}</h3>
           ${visBadge}
         </div>
-        <p class="module-meta">Subject: ${module.subjects?.name || 'General'} | Status: ${module.status}</p>
+        <p class="module-meta">Subject: ${module.subjects?.name || 'General'} | Status: ${statusLabel} | ${timeAgo(module.created_at)}</p>
         ${isPublic && module.category ? `<p class="module-category-tag">${module.category}</p>` : ''}
-        ${scoreText ? `<p class="module-score">Total Score: <strong>${scoreText}</strong></p>` : ''}
+        ${scoreText ? `<p class="module-score">Last Score: <strong>${scoreText}</strong></p>` : `<p class="module-meta" style="font-style:italic">No quiz taken yet — start a practice quiz!</p>`}
         <div class="module-actions">
           <button class="start-btn" data-action="start" data-id="${module.id}">Start</button>
           ${
@@ -325,19 +326,34 @@ function setModuleLoading(isLoading, text = '') {
 }
 
 function setFileAttachedState(file) {
+  const zone = document.querySelector('.upload-zone');
+  const iconRing = zone?.querySelector('.upload-icon-ring');
+  const label = zone?.querySelector('strong');
+  const hint = zone?.querySelector('.upload-hint');
   const indicator = document.getElementById('file-indicator');
   const submitBtn = document.getElementById('create-module-btn');
-  if (!indicator) return;
+  if (!zone) return;
 
   if (file) {
-    indicator.classList.add('attached');
-    indicator.textContent = 'File attached';
+    const ext = file.name.split('.').pop().toLowerCase();
+    const isPdf = ext === 'pdf';
+    const icon = isPdf
+      ? '<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>'
+      : '<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>';
+    if (iconRing) iconRing.innerHTML = icon;
+    if (label) label.textContent = file.name;
+    if (hint) hint.textContent = `${ext.toUpperCase()} file selected · Click to change`;
+    if (indicator) { indicator.classList.add('attached'); indicator.textContent = ext.toUpperCase(); }
+    zone.classList.add('has-file');
     if (submitBtn) submitBtn.classList.add('ready');
     return;
   }
 
-  indicator.classList.remove('attached');
-  indicator.textContent = 'No file selected';
+  if (iconRing) iconRing.innerHTML = '<svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
+  if (label) label.textContent = 'Upload PDF or DOCX';
+  if (hint) hint.textContent = 'Drag & drop or click to browse';
+  if (indicator) { indicator.classList.remove('attached'); indicator.textContent = 'No file selected'; }
+  zone.classList.remove('has-file');
   if (submitBtn) submitBtn.classList.remove('ready');
 }
 
@@ -388,6 +404,14 @@ document.getElementById('module-form').addEventListener('submit', async (event) 
     window.localStorage.removeItem('prelab_quiz');
     window.localStorage.removeItem('prelab_result');
     window.localStorage.setItem('prelab_module', JSON.stringify(data.module));
+
+    /* Auto-fill subject & title from last created module */
+    if (data.module) {
+      const subjectInput = document.getElementById('subject-name');
+      const titleInput = document.getElementById('module-title');
+      if (subjectInput && data.module.subjects?.name) subjectInput.value = data.module.subjects.name;
+      if (titleInput && data.module.title) titleInput.value = data.module.title;
+    }
   } catch (error) {
     setModuleLoading(false, error.message);
   }
@@ -464,7 +488,11 @@ async function loadCommunityModules(userId, category) {
         <div class="module-actions">
           <button class="start-btn" data-action="start-community" data-id="${mod.id}">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Study This
+            Take Quiz
+          </button>
+          <button class="summary-btn" data-action="study-community" data-id="${mod.id}">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            Study Material
           </button>
         </div>
       `;
@@ -476,8 +504,50 @@ async function loadCommunityModules(userId, category) {
         const moduleId = btn.dataset.id;
         btn.disabled = true;
         try {
+          /* Fetch the host's quiz for this community module */
+          const quizData = await window.api.get(
+            `/modules/${encodeURIComponent(moduleId)}/community-quiz`
+          );
+          if (!quizData.quiz || !quizData.quiz.quiz_json?.questions?.length) {
+            await window.prelabDialog.alert(
+              'The host hasn\u2019t created a quiz for this module yet. You can study the material instead.',
+              { title: 'No Quiz Available', icon: 'info' }
+            );
+            return;
+          }
+
           const details = await window.api.get(
-            `/modules/${moduleId}?userId=${encodeURIComponent(userId)}`
+            `/modules/${encodeURIComponent(moduleId)}?userId=${encodeURIComponent(userId)}`
+          );
+          window.localStorage.removeItem('prelab_result');
+
+          /* Inherit host timer settings if present */
+          const hostTimer = quizData.quiz.quiz_json?.timer;
+          if (hostTimer && hostTimer.enabled) {
+            window.localStorage.setItem('prelab_timer', JSON.stringify({ enabled: true, seconds: hostTimer.seconds }));
+          } else {
+            window.localStorage.removeItem('prelab_timer');
+          }
+
+          window.localStorage.setItem('prelab_module', JSON.stringify(details.module));
+          window.localStorage.setItem('prelab_quiz', JSON.stringify({
+            quizId: quizData.quiz.id,
+            quiz: quizData.quiz.quiz_json
+          }));
+          goTo(`/pages/practice?quizId=${encodeURIComponent(quizData.quiz.id)}&moduleId=${encodeURIComponent(moduleId)}`);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    });
+
+    grid.querySelectorAll('[data-action="study-community"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const moduleId = btn.dataset.id;
+        btn.disabled = true;
+        try {
+          const details = await window.api.get(
+            `/modules/${encodeURIComponent(moduleId)}?userId=${encodeURIComponent(userId)}`
           );
           window.localStorage.removeItem('prelab_quiz');
           window.localStorage.removeItem('prelab_result');

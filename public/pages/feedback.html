@@ -34,21 +34,21 @@
   </header>
 
   <!-- Score hero section -->
-  <section class="score-hero">
+  <section class="score-hero" data-reveal="fade-up">
     <div class="hero-inner">
-      <h1 id="result-title" class="hero-title">Quiz Results</h1>
-      <div class="score-ring">
+      <h1 id="result-title" class="hero-title" data-reveal="fade-up" data-delay="1">Quiz Results</h1>
+      <div class="score-ring" data-reveal="scale-in" data-delay="2">
         <span id="score" class="score-value">-</span>
       </div>
-      <p class="correct-label">Correct: <strong id="correct">-/-</strong></p>
-      <p id="encouragement" class="encouragement">Great effort! Review your answers below.</p>
+      <p class="correct-label" data-reveal="fade-up" data-delay="3">Correct: <strong id="correct">-/-</strong></p>
+      <p id="encouragement" class="encouragement" data-reveal="fade-up" data-delay="4">Great effort! Review your answers below.</p>
     </div>
   </section>
 
   <main class="results-content">
 
     <!-- LEFT — Answer review list -->
-    <section class="review-panel">
+    <section class="review-panel" data-reveal="fade-up">
       <div class="panel-head">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         <h2>Answer Review</h2>
@@ -57,7 +57,7 @@
     </section>
 
     <!-- RIGHT — Tips + actions -->
-    <aside class="tips-panel">
+    <aside class="tips-panel" data-reveal="fade-up" data-delay="1">
       <div class="tips-card">
         <div class="panel-head">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>

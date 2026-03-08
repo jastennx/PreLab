@@ -2,6 +2,19 @@
    THEME.CSS — shared transitions, skeletons, bg themes
    ═══════════════════════════════════════════════════════ */
 
+/* ═════════ COOLALERT VIEWPORT CENTERING ═════════ */
+.cool-alert-modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 99999 !important;
+}
+
 /* ═════════ PAGE TRANSITIONS ═════════ */
 body {
   opacity: 0;
@@ -10,7 +23,7 @@ body {
 }
 body.page-ready {
   opacity: 1;
-  transform: translateY(0);
+  transform: none;
 }
 body.page-leaving {
   opacity: 0;
@@ -264,6 +277,21 @@ body.bg-light .option.selected .option-prefix {
   background: #8f49e6 !important;
   color: #fff !important;
 }
+/* feedback page — question text + review cards on light bg */
+body.bg-light .review-item .review-question strong { color: #1a1025; }
+body.bg-light .review-question { color: #1a1025; }
+body.bg-light .review-item { background: rgba(255,255,255,.45); border-color: rgba(30,10,60,.12); }
+body.bg-light .review-item:hover { border-color: rgba(30,10,60,.2); }
+body.bg-light .review-header:hover { background: rgba(0,0,0,.04); }
+body.bg-light .review-number { color: inherit; }
+body.bg-light .review-item p { color: #6b5a82; }
+body.bg-light .score-hero { background: linear-gradient(180deg, rgba(124,58,237,.06) 0%, transparent 100%); border-bottom-color: rgba(30,10,60,.12); }
+body.bg-light .hero-title { color: #3d2e55; }
+body.bg-light .correct-label { color: #6b5a82; }
+body.bg-light .correct-label strong { color: #1a1025; }
+body.bg-light .encouragement { color: #6b5a82; }
+body.bg-light .tips-card { background: rgba(255,255,255,.45); border-color: rgba(30,10,60,.12); }
+body.bg-light .tips-list li { background: rgba(255,255,255,.5); border-color: rgba(30,10,60,.1); color: #3d2e55; }
 /* keep bg-orbs subtle on light bg */
 
 /* ═════════ SKELETON LOADERS ═════════ */
@@ -359,4 +387,32 @@ body.bg-light .option.selected .option-prefix {
   body { transition: none !important; }
   body { animation: none !important; }
   .skeleton-card { animation: none !important; }
+  [data-reveal] { opacity: 1 !important; transform: none !important; transition: none !important; }
+}
+
+/* ═════════ SCROLL REVEAL ANIMATIONS (shared) ═════════ */
+[data-reveal] {
+  opacity: 0;
+  will-change: transform, opacity;
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-reveal="fade-up"]    { transform: translateY(40px); }
+[data-reveal="fade-left"]  { transform: translateX(40px); }
+[data-reveal="fade-right"] { transform: translateX(-40px); }
+[data-reveal="scale-in"]   { transform: scale(0.92); }
+
+[data-reveal][data-delay="1"] { transition-delay: 0.08s; }
+[data-reveal][data-delay="2"] { transition-delay: 0.16s; }
+[data-reveal][data-delay="3"] { transition-delay: 0.24s; }
+[data-reveal][data-delay="4"] { transition-delay: 0.32s; }
+[data-reveal][data-delay="5"] { transition-delay: 0.40s; }
+[data-reveal][data-delay="6"] { transition-delay: 0.48s; }
+[data-reveal][data-delay="7"] { transition-delay: 0.56s; }
+[data-reveal][data-delay="8"] { transition-delay: 0.64s; }
+
+[data-reveal].revealed {
+  opacity: 1;
+  transform: none;
 }

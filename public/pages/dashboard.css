@@ -251,6 +251,15 @@ input[type="file"] { display: none; }
   border-color: rgba(143, 73, 230, 0.25);
 }
 
+.upload-zone.has-file {
+  border-color: rgba(143, 73, 230, 0.4);
+  background: rgba(143, 73, 230, 0.06);
+}
+.upload-zone.has-file strong {
+  color: var(--primary-2);
+  word-break: break-all;
+}
+
 .material-divider {
   display: flex; align-items: center; justify-content: center;
   padding: 0 1rem; color: var(--ink-muted); font-size: 0.78rem; font-weight: 600;

@@ -107,12 +107,28 @@ function renderResult(result) {
 
     const div = document.createElement('div');
     div.className = `review-item ${item.is_correct ? 'good' : 'bad'}`;
+
+    const answerDetails = item.is_correct
+      ? `<p>Correct answer: <strong class="correct-answer">${correctLetter}. ${item.correct_answer}</strong></p>`
+      : `<p>Your answer: <strong>${selectedLetter}. ${item.selected_answer || 'No answer'}</strong></p>
+         <p>Correct answer: <strong class="correct-answer">${correctLetter}. ${item.correct_answer}</strong></p>`;
+
     div.innerHTML = `
-      <strong>Question ${index + 1}: ${item.is_correct ? 'CORRECT' : 'INCORRECT'}</strong>
-      <p class="review-question"><strong>${item.question}</strong></p>
-      <p>Your answer: <strong>${selectedLetter}. ${item.selected_answer || 'No answer'}</strong></p>
-      <p>Correct answer: <strong class="correct-answer">${correctLetter}. ${item.correct_answer}</strong></p>
+      <div class="review-header" data-index="${index}">
+        <span class="review-number">${index + 1}</span>
+        <span class="review-status">${item.is_correct ? 'CORRECT' : 'INCORRECT'}</span>
+        <svg class="review-chevron" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="review-body">
+        <p class="review-question"><strong>${item.question}</strong></p>
+        ${answerDetails}
+      </div>
     `;
+
+    div.querySelector('.review-header').addEventListener('click', () => {
+      div.classList.toggle('open');
+    });
+
     reviewList.appendChild(div);
   });
 

@@ -38,6 +38,7 @@ async function bootstrap() {
   document.getElementById('subject-name').textContent = `Subject: ${module.subjects?.name || 'General'}`;
   setupQuizGuidanceInput(module.id);
   setupQuestionCountInput();
+  setupTimerToggle();
   await loadChat(authUser.id, module.id);
 }
 
@@ -91,6 +92,16 @@ function setupQuestionCountInput() {
 
   el.addEventListener('blur', () => {
     el.value = String(sanitizeQuestionCount(el.value));
+  });
+}
+
+function setupTimerToggle() {
+  const toggle = document.getElementById('timer-toggle');
+  const secondsField = document.getElementById('timer-seconds-field');
+  if (!toggle || !secondsField) return;
+
+  toggle.addEventListener('change', () => {
+    secondsField.style.display = toggle.checked ? '' : 'none';
   });
 }
 
@@ -422,11 +433,19 @@ document.getElementById('start-practice').addEventListener('click', async () => 
   const quizGuidance = sanitizeQuizGuidance(document.getElementById('quiz-guidance')?.value || '');
   try {
     setQuizLoading(true, 'Module is still creating your quiz. Please wait...');
+    /* Collect timer settings before generating */
+    const timerEnabled = document.getElementById('timer-toggle')?.checked || false;
+    const timerSeconds = Number(document.getElementById('timer-seconds')?.value) || 30;
+    const timerPayload = timerEnabled
+      ? { enabled: true, seconds: Math.max(5, Math.min(300, timerSeconds)) }
+      : null;
+
     const data = await window.api.post('/practice/generate', {
       moduleId: module.id,
       userId: authUser.id,
       questionCount: selectedQuestionCount,
-      quizGuidance
+      quizGuidance,
+      timer: timerPayload
     });
 
     if (data.warning) {
@@ -434,6 +453,14 @@ document.getElementById('start-practice').addEventListener('click', async () => 
     }
     window.localStorage.setItem('prelab_quiz', JSON.stringify(data));
     window.localStorage.removeItem('prelab_result');
+
+    /* Save timer settings for practice page */
+    if (timerPayload) {
+      window.localStorage.setItem('prelab_timer', JSON.stringify(timerPayload));
+    } else {
+      window.localStorage.removeItem('prelab_timer');
+    }
+
     setQuizLoading(false, '');
     const quizId = encodeURIComponent(data.quizId || '');
     const moduleId = encodeURIComponent(module.id || '');

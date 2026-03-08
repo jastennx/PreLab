@@ -34,7 +34,7 @@
   </header>
 
   <main class="study-shell">
-    <section class="hero-panel reveal">
+    <section class="hero-panel" data-reveal="fade-up">
       <div>
         <p class="eyebrow">Study workspace</p>
         <h1 id="module-title">Module</h1>
@@ -50,7 +50,7 @@
     </section>
 
     <section class="content-grid">
-      <article id="explanation-card" class="panel explanation-card compact reveal">
+      <article id="explanation-card" class="panel explanation-card compact" data-reveal="fade-up">
         <div class="panel-head">
           <h2>Explanation</h2>
           <span class="panel-tag">AI guide</span>
@@ -72,7 +72,7 @@
         </div>
       </article>
 
-      <aside class="panel quiz-config reveal">
+      <aside class="panel quiz-config" data-reveal="fade-up" data-delay="1">
         <div class="panel-head">
           <h2>Practice Quiz</h2>
           <span class="panel-tag">Custom</span>
@@ -80,6 +80,18 @@
 
         <label for="quiz-guidance">Quiz guidance <span class="opt">optional</span></label>
         <textarea id="quiz-guidance" rows="5" maxlength="600" placeholder="Example: focus on chapter 2, include scenario questions."></textarea>
+
+        <div class="timer-toggle-row">
+          <label class="toggle-label-row">
+            <span class="toggle-text">Timed Quiz</span>
+            <input type="checkbox" id="timer-toggle" class="sr-only" />
+            <span class="toggle-track"><span class="toggle-knob"></span></span>
+          </label>
+          <div class="timer-seconds-field" id="timer-seconds-field" style="display:none">
+            <label for="timer-seconds">Seconds per question</label>
+            <input id="timer-seconds" type="number" min="5" max="300" step="1" value="30" inputmode="numeric" />
+          </div>
+        </div>
 
         <div class="quiz-footer">
           <div class="field-inline">
@@ -95,7 +107,7 @@
       </aside>
     </section>
 
-    <section class="quick-steps reveal">
+    <section class="quick-steps" data-reveal="fade-up">
       <h2>How It Works</h2>
       <div class="steps-grid">
         <article class="step-card">

@@ -262,6 +262,13 @@ document.getElementById('next-btn').addEventListener('click', async () => {
   const total = quizData.quiz.questions.length;
 
   if (currentIndex + 1 < total) {
+    if (timerSettings && answers[currentIndex] === null) {
+      await window.prelabDialog.alert('Please select an answer before moving to the next question.', {
+        title: 'Answer Required',
+        icon: 'warning'
+      });
+      return;
+    }
     currentIndex += 1;
     renderPager();
     renderQuestion();

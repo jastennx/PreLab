@@ -119,10 +119,14 @@ function renderResult(result) {
     const div = document.createElement('div');
     div.className = `review-item ${item.is_correct ? 'good' : 'bad'}`;
 
+    const unanswered = !Number.isInteger(item.selected_index) || item.selected_index < 0;
     const answerDetails = item.is_correct
       ? `<p>Correct answer: <strong class="correct-answer">${correctLetter}. ${item.correct_answer}</strong></p>`
-      : `<p>Your answer: <strong>${selectedLetter}. ${item.selected_answer || 'No answer'}</strong></p>
-         <p>Correct answer: <strong class="correct-answer">${correctLetter}. ${item.correct_answer}</strong></p>`;
+      : unanswered
+        ? `<p><strong class="no-answer">No answer selected</strong></p>
+           <p>Correct answer: <strong class="correct-answer">${correctLetter}. ${item.correct_answer}</strong></p>`
+        : `<p>Your answer: <strong>${selectedLetter}. ${item.selected_answer}</strong></p>
+           <p>Correct answer: <strong class="correct-answer">${correctLetter}. ${item.correct_answer}</strong></p>`;
 
     div.innerHTML = `
       <div class="review-header" data-index="${index}">

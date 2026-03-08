@@ -240,6 +240,9 @@ body {
 .correct-answer {
   color: var(--green) !important;
 }
+.no-answer {
+  color: var(--text-3); font-style: italic;
+}
 
 /* ═════════ TIPS PANEL ═════════ */
 .tips-panel {
